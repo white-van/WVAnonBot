@@ -97,12 +97,6 @@ function handleSetCommand(params, msg) {
     }
 }
 
-function getHelpString() {
-    return 'WV Anon bot commands: \n'
-        + '!anon set log #channel -> Sets the logger channel for the bot to dump submitted messages with anon IDs\n'
-        + '!anon set anon #channel -> Sets the anon channel for the bot to write to\n'
-}
-
 function replyToServerMessageWithStatus(msg, status) {
     msg.channel.messages.channel.send(errors.getError(status));
 }
