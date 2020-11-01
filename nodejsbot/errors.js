@@ -6,7 +6,7 @@ const errorMap = {
         .setDescription('WV\'s custom anon bot designed to allow for maximum admin aboose')
         .setColor(3447003)
         .addFields({
-            name: "Setting channel destinations",
+            name: 'Setting channel destinations',
             value: '!anon set log #channel -> Sets the logger channel for the bot to dump submitted messages with anon IDs\n'
                 + '!anon set anon #channel -> Sets the anon channel for the bot to write to',
             })

@@ -1,6 +1,7 @@
 const discord = require('discord.js');
 const client = new discord.Client();
 const auth = require('./auth.json');
+const encryptor = require('./encryptor.js');
 const errors = require('./errors.js');
 
 var logChannel = '';
@@ -30,12 +31,10 @@ function submitAnon(msg) {
         return;
     }
 
-    var msgToSend = { embed: {
-        color: 3447003,
-        description: msg.content,
-        timestamp: new Date()
-      }
-    };
+    var msgToSend = new discord.MessageEmbed()
+        .setDescription(msg.content)
+        .setColor(3447003)
+        .setTimestamp();
 
     var anonChannelDestination = client.channels.cache.get(anonChannel);
     var logChannelDestination = client.channels.cache.get(logChannel);
@@ -46,6 +45,10 @@ function submitAnon(msg) {
     }
 
     if (logChannelDestination) {
+        msgToSend.addFields({
+            name: 'Anon ID',
+            value: encryptor.encrypt(msg.author.id)
+        });
         logChannelDestination.send(msgToSend);
     }
 }
