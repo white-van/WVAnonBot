@@ -98,6 +98,11 @@ function handleSetCommand(params, msg) {
 }
 
 function replyToServerMessageWithStatus(msg, status) {
+    var errorDesc = errors.getError(status);
+    // Help message special case. Setting header
+    if (status == 0) {
+        errorDesc.setAuthor(client.user.username, client.user.avatarURL());
+    }
     msg.channel.messages.channel.send(errors.getError(status));
 }
 
