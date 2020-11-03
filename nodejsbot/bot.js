@@ -3,9 +3,7 @@ const client = new discord.Client();
 const auth = require('./auth.json');
 const encryptor = require('./encryptor.js');
 const errors = require('./errors.js');
-
-var logChannel = '';
-var anonChannel = '';
+const database = require('./database.js');
 
 // Hooks
 client.on('ready', () => {
@@ -26,7 +24,10 @@ client.on('message', msg => {
 
 // Central functionality
 function submitAnon(msg) {
-    if (logChannel == '' || anonChannel == '') {
+    var anonChannel = database.getChannelDestination('anonChannel');
+    var anonLogsChannel = database.getChannelDestination('anonLogChannel');
+
+    if (anonLogsChannel == '' || anonChannel == '') {
         msg.reply('The bot first needs to be configured!');
         return;
     }
@@ -37,7 +38,7 @@ function submitAnon(msg) {
         .setTimestamp();
 
     var anonChannelDestination = client.channels.cache.get(anonChannel);
-    var logChannelDestination = client.channels.cache.get(logChannel);
+    var logChannelDestination = client.channels.cache.get(anonLogsChannel);
 
     if (anonChannelDestination) {
         anonChannelDestination.send(msgToSend);
@@ -78,7 +79,7 @@ function handleSetCommand(params, msg) {
     switch (params[2]) {
         case 'log':
             if (validChannelId) {
-                logChannel = channelId;
+                database.setChannelDestinations('anonLogChannel', channelId);
                 replyToServerMessageWithStatus(msg, 1000);
             }
             else {
@@ -87,7 +88,7 @@ function handleSetCommand(params, msg) {
             break;
         case 'anon':
             if (validChannelId) {
-                anonChannel = channelId;
+                database.setChannelDestinations('anonChannel', channelId);
                 replyToServerMessageWithStatus(msg, 1001);
             }
             else {
