@@ -8,17 +8,20 @@ const errorMap = {
         .addFields({
             name: 'Setting channel destinations',
             value: '!anon set log #channel -> Sets the logger channel for the bot to dump submitted messages with anon IDs\n'
-                + '!anon set anon #channel -> Sets the anon channel for the bot to write to',
+                + '!anon set anon #channel -> Sets the anon channel for the bot to write to\n'
+                + '!anon set deeptalks #channel -> Sets the deep talk channel for the bot to write to',
             })
         .setTimestamp(),
     // Success
     1000 : 'Logs channel configured successfully',
     1001 : 'Anon channel configured successfully',
+    1002 : 'Deep talks channel configured successfully',
     // Input configuration problems
     2000 : 'Command unrecognized. Run !anon help for all available commands',
     2001 : 'Nothing provided after set. Run !anon help for all available options',
     2002 : 'Logs channel not found or not provided. Make sure the channel is properly tagged (ex: #logs)',
-    2003 : 'Anon channel not found or not provided. Make sure the channel is properly tagged (ex: #anonymous-messages)'
+    2003 : 'Anon channel not found or not provided. Make sure the channel is properly tagged (ex: #anonymous-messages)',
+    2004 : 'Deep talks channel not found or not provided. Make sure the channel is properly tagged (ex: #deep-talks)'
 }
 
 module.exports = {

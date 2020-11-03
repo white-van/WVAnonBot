@@ -36,9 +36,9 @@ function initializeTables() {
     var stmt = db.prepare('CREATE TABLE IF NOT EXISTS encryptor (ivValue TEXT)');
     stmt.run();
     // Channel storage
-    stmt = db.prepare('CREATE TABLE IF NOT EXISTS channelDestinations (anonChannel TEXT, anonLogChannel TEXT)');
+    stmt = db.prepare('CREATE TABLE IF NOT EXISTS channelDestinations (anonChannel TEXT, anonLogChannel TEXT, deepTalksChannel TEXT)');
     stmt.run();
-    stmt = db.prepare('INSERT INTO channelDestinations VALUES (\'\', \'\')');
+    stmt = db.prepare('INSERT INTO channelDestinations VALUES (\'\', \'\', \'\')');
     stmt.run();
 }
 

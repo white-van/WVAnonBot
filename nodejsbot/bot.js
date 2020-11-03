@@ -24,34 +24,47 @@ client.on('message', msg => {
 
 // Central functionality
 function submitAnon(msg) {
+    var msgStripped = msg.content.replace(/^(!deeptalks)/,"");
     var anonChannel = database.getChannelDestination('anonChannel');
     var anonLogsChannel = database.getChannelDestination('anonLogChannel');
+    var deepTalksChannel = database.getChannelDestination('deepTalksChannel');
 
-    if (anonLogsChannel == '' || anonChannel == '') {
+    if (anonLogsChannel == '' || anonChannel == '' || deepTalksChannel == '') {
         msg.reply('The bot first needs to be configured!');
+        return;
+    }
+    else if (msgStripped.replace(' ', '') == '') {
+        msg.reply('Give me something proper!');
         return;
     }
 
     var msgToSend = new discord.MessageEmbed()
-        .setDescription(msg.content)
+        .setDescription(msgStripped.trim())
         .setColor(3447003)
         .setTimestamp();
 
     var anonChannelDestination = client.channels.cache.get(anonChannel);
+    var deepTalkChannelDestination = client.channels.cache.get(deepTalksChannel);
     var logChannelDestination = client.channels.cache.get(anonLogsChannel);
 
-    if (anonChannelDestination) {
+    if (msg.content.startsWith('!deeptalks ')) {
+        deepTalkChannelDestination.send(msgToSend);
+        msg.reply('Message sent to ' + deepTalkChannelDestination.name);
+    }
+    else {
         anonChannelDestination.send(msgToSend);
         msg.reply('Message sent to ' + anonChannelDestination.name);
     }
 
-    if (logChannelDestination) {
-        msgToSend.addFields({
-            name: 'Anon ID',
-            value: encryptor.encrypt(msg.author.id)
-        });
-        logChannelDestination.send(msgToSend);
-    }
+    msgToSend.addFields({
+        name: 'Anon ID',
+        value: encryptor.encrypt(msg.author.id)
+    },
+    {
+        name: 'Target channel',
+        value: msg.content.startsWith('!deeptalks ') ? deepTalkChannelDestination.name : anonChannelDestination.name
+    });
+    logChannelDestination.send(msgToSend);
 }
 
 function parseArguments(msg) {
@@ -93,6 +106,15 @@ function handleSetCommand(params, msg) {
             }
             else {
                 replyToServerMessageWithStatus(msg, 2003);
+            }
+            break;
+        case 'deeptalks':
+            if (validChannelId) {
+                database.setChannelDestinations('deepTalksChannel', channelId);
+                replyToServerMessageWithStatus(msg, 1002);
+            }
+            else {
+                replyToServerMessageWithStatus(msg, 2004);
             }
             break;
         default:
