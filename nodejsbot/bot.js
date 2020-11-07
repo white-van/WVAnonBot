@@ -18,7 +18,7 @@ client.on('message', msg => {
     if (msg.channel.type == 'dm') {
         submitAnon(msg);
     }
-    else if (msg.channel.type == 'text') {
+    else if (msg.channel.type == 'text' && canConfigure(msg)) {
         parseArguments(msg);
     }
 });
@@ -131,6 +131,10 @@ function replyToServerMessageWithStatus(msg, status) {
         errorDesc.setAuthor(client.user.username, client.user.avatarURL());
     }
     msg.channel.messages.channel.send(errors.getError(status));
+}
+
+function canConfigure(msg) {
+    return msg.member.roles.cache.find(role => metadata.permissions.ROLES.includes(role.name));
 }
 
 client.login(auth.token);

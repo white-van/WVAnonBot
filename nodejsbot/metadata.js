@@ -9,6 +9,7 @@ const permissions = {
 };
 
 Object.freeze(channels);
+Object.freeze(permissions);
 
 module.exports = {
     channels,
