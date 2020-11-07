@@ -4,6 +4,7 @@ const auth = require('./auth.json');
 const encryptor = require('./encryptor.js');
 const errors = require('./errors.js');
 const database = require('./database.js');
+const metadata = require('./metadata.js');
 
 // Hooks
 client.on('ready', () => {
@@ -25,9 +26,9 @@ client.on('message', msg => {
 // Central functionality
 function submitAnon(msg) {
     var msgStripped = msg.content.replace(/^(!deeptalks)/,"");
-    var anonChannel = database.getChannelDestination('anonChannel');
-    var anonLogsChannel = database.getChannelDestination('anonLogChannel');
-    var deepTalksChannel = database.getChannelDestination('deepTalksChannel');
+    var anonChannel = database.getChannelDestination(metadata.channels.ANONCHANNEL);
+    var anonLogsChannel = database.getChannelDestination(metadata.channels.ANONLOGS);
+    var deepTalksChannel = database.getChannelDestination(metadata.channels.DEEPTALKS);
 
     if (anonLogsChannel == '' || anonChannel == '' || deepTalksChannel == '') {
         msg.reply('The bot first needs to be configured!');
@@ -92,7 +93,7 @@ function handleSetCommand(params, msg) {
     switch (params[2]) {
         case 'log':
             if (validChannelId) {
-                database.setChannelDestinations('anonLogChannel', channelId);
+                database.setChannelDestinations(metadata.channels.ANONLOGS, channelId);
                 replyToServerMessageWithStatus(msg, 1000);
             }
             else {
@@ -101,7 +102,7 @@ function handleSetCommand(params, msg) {
             break;
         case 'anon':
             if (validChannelId) {
-                database.setChannelDestinations('anonChannel', channelId);
+                database.setChannelDestinations(metadata.channels.ANONCHANNEL, channelId);
                 replyToServerMessageWithStatus(msg, 1001);
             }
             else {
@@ -110,7 +111,7 @@ function handleSetCommand(params, msg) {
             break;
         case 'deeptalks':
             if (validChannelId) {
-                database.setChannelDestinations('deepTalksChannel', channelId);
+                database.setChannelDestinations(metadata.channels.DEEPTALKS, channelId);
                 replyToServerMessageWithStatus(msg, 1002);
             }
             else {

@@ -1,5 +1,6 @@
 var sqlite = require('better-sqlite3');
 var db = new sqlite('./dbfile');
+var metadata = require('./metadata.js');
 
 function getOrSetEncryptor(bufferIv) {
     // Can only have one encryptor value. Get an existing, or set and return passed
@@ -36,7 +37,10 @@ function initializeTables() {
     var stmt = db.prepare('CREATE TABLE IF NOT EXISTS encryptor (ivValue TEXT)');
     stmt.run();
     // Channel storage
-    stmt = db.prepare('CREATE TABLE IF NOT EXISTS channelDestinations (anonChannel TEXT, anonLogChannel TEXT, deepTalksChannel TEXT)');
+    stmt = db.prepare(
+        'CREATE TABLE IF NOT EXISTS channelDestinations ('
+        + Object.values(metadata.channels).join(' TEXT, ')
+        + ' TEXT)');
     stmt.run();
     stmt = db.prepare('INSERT INTO channelDestinations VALUES (\'\', \'\', \'\')');
     stmt.run();
