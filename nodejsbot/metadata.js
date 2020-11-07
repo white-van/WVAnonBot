@@ -4,6 +4,13 @@ const channels = {
     DEEPTALKS: 'deepTalksChannel'
 };
 
+const blockReason = {
+    SLOWMODE: 'slowmode',
+    SPAM: 'spamprotection',
+    TEMPBAN: 'tempban',
+    PERMBAN: 'permban'
+};
+
 const permissions = {
     ROLES: ['admin', 'moderator']
 };
@@ -13,5 +20,6 @@ Object.freeze(permissions);
 
 module.exports = {
     channels,
-    permissions
+    permissions,
+    blockReason
 }

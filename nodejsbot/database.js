@@ -36,6 +36,7 @@ function initializeTables() {
     // Encryption storage for persistency of IDs
     var stmt = db.prepare('CREATE TABLE IF NOT EXISTS encryptor (ivValue TEXT)');
     stmt.run();
+
     // Channel storage
     stmt = db.prepare(
         'CREATE TABLE IF NOT EXISTS channelDestinations ('
@@ -43,6 +44,16 @@ function initializeTables() {
         + ' TEXT)');
     stmt.run();
     stmt = db.prepare('INSERT INTO channelDestinations VALUES (\'\', \'\', \'\')');
+    stmt.run();
+
+    // Configuration settings
+    db.prepare('CREATE TABLE IF NOT EXISTS configuration (slowmodeTimer INTEGER)');
+    stmt.run();
+    db.prepare('INSERT INTO configuration VALUES (0)');
+    stmt.run();
+    
+    // Message blockers
+    stmt = db.prepare('CREATE TABLE IF NOT EXISTS messageBlocker (encryptedUserId TEXT, reason TEXT, date TEXT)');
     stmt.run();
 }
 

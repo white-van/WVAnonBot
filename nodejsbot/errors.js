@@ -21,7 +21,12 @@ const errorMap = {
     2001 : 'Nothing provided after set. Run !anon help for all available options',
     2002 : 'Logs channel not found or not provided. Make sure the channel is properly tagged (ex: #logs)',
     2003 : 'Anon channel not found or not provided. Make sure the channel is properly tagged (ex: #anonymous-messages)',
-    2004 : 'Deep talks channel not found or not provided. Make sure the channel is properly tagged (ex: #deep-talks)'
+    2004 : 'Deep talks channel not found or not provided. Make sure the channel is properly tagged (ex: #deep-talks)',
+    // Message blocks
+    3000 : 'Slowmode is active. Try sending in ',
+    3001 : 'You\'ve send too many messages within a short timeframe. Try again in ',
+    3002 : 'You\'ve been temporarily banned from posting anon messages. Reason and date for unban: ',
+    3003 : 'You\'ve been permenantly banned from posting anon messages. Reason: ',
 }
 
 module.exports = {
