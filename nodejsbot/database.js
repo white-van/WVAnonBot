@@ -49,6 +49,11 @@ function deleteMessageBlocker(encryptedUser) {
     stmt.run(encryptedUser);
 }
 
+function deleteAllSlowdowns() {
+    var stmt = db.prepare('DELETE FROM messageBlocker WHERE reason = ?');
+    stmt.run(metadata.blockReason.SLOWMODE);
+}
+
 module.exports = {
     getOrSetEncryptor,
     setChannelDestinations,
@@ -57,7 +62,8 @@ module.exports = {
     getConfigurationTimer,
     setMessageBlocker,
     getMessageBlocker,
-    deleteMessageBlocker
+    deleteMessageBlocker,
+    deleteAllSlowdowns
 }
 
 // Initial setup

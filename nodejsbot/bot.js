@@ -140,6 +140,8 @@ function handleSlowmodeCommand(params, msg) {
         replyTorMessageWithStatus(msg, 2005);
         return;
     }
+    
+    database.deleteAllSlowdowns();
     database.setConfigurationTimer(metadata.configuration.SLOWMODE, seconds);
     replyTorMessageWithStatus(
         msg,
