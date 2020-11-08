@@ -11,15 +11,22 @@ const blockReason = {
     PERMBAN: 'permban'
 };
 
+const configuration = {
+    SLOWMODE: 'slowmode',
+    SPAMPROC: 'spamprotection',
+};
+
 const permissions = {
     ROLES: ['admin', 'moderator']
 };
 
 Object.freeze(channels);
 Object.freeze(permissions);
+Object.freeze(configuration);
 
 module.exports = {
     channels,
     permissions,
-    blockReason
+    blockReason,
+    configuration
 }

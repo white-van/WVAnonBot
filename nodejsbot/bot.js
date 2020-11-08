@@ -5,6 +5,7 @@ const encryptor = require('./encryptor.js');
 const errors = require('./errors.js');
 const database = require('./database.js');
 const metadata = require('./metadata.js');
+const timerhandler = require('./timerhandler.js');
 
 // Hooks
 client.on('ready', () => {
@@ -36,6 +37,12 @@ function submitAnon(msg) {
     }
     else if (msgStripped.replace(' ', '') == '') {
         msg.reply('Give me something proper!');
+        return;
+    }
+
+    var timerError = timerhandler.configureTimersAndCheckIfCanSend(msg);
+    if (timerError) {
+        replyTorMessageWithStatus(msg, timerError.errorCode, timerError.suffix);
         return;
     }
 
@@ -74,13 +81,16 @@ function parseArguments(msg) {
     if (params[0] == '!anon') {
         switch (params[1]) {
             case 'help':
-                replyToServerMessageWithStatus(msg, 0);
+                replyTorMessageWithStatus(msg, 0);
                 break;
             case 'set':
                 handleSetCommand(params, msg);
                 break;
+            case 'slowmode':
+                handleSlowmodeCommand(params, msg);
+                break;
             default:
-                replyToServerMessageWithStatus(msg, 2000);
+                replyTorMessageWithStatus(msg, 2000);
                 break;
         }
     }
@@ -94,47 +104,70 @@ function handleSetCommand(params, msg) {
         case 'log':
             if (validChannelId) {
                 database.setChannelDestinations(metadata.channels.ANONLOGS, channelId);
-                replyToServerMessageWithStatus(msg, 1000);
+                replyTorMessageWithStatus(msg, 1000);
             }
             else {
-                replyToServerMessageWithStatus(msg, 2002);
+                replyTorMessageWithStatus(msg, 2002);
             }
             break;
         case 'anon':
             if (validChannelId) {
                 database.setChannelDestinations(metadata.channels.ANONCHANNEL, channelId);
-                replyToServerMessageWithStatus(msg, 1001);
+                replyTorMessageWithStatus(msg, 1001);
             }
             else {
-                replyToServerMessageWithStatus(msg, 2003);
+                replyTorMessageWithStatus(msg, 2003);
             }
             break;
         case 'deeptalks':
             if (validChannelId) {
                 database.setChannelDestinations(metadata.channels.DEEPTALKS, channelId);
-                replyToServerMessageWithStatus(msg, 1002);
+                replyTorMessageWithStatus(msg, 1002);
             }
             else {
-                replyToServerMessageWithStatus(msg, 2004);
+                replyTorMessageWithStatus(msg, 2004);
             }
             break;
         default:
-            replyToServerMessageWithStatus(msg, 2001);
+            replyTorMessageWithStatus(msg, 2001);
             break;
     }
 }
 
-function replyToServerMessageWithStatus(msg, status) {
+function handleSlowmodeCommand(params, msg) {
+    var seconds = params[2];
+    if (!isNumeric(seconds)) {
+        replyTorMessageWithStatus(msg, 2005);
+        return;
+    }
+    database.setConfigurationTimer(metadata.configuration.SLOWMODE, seconds);
+    replyTorMessageWithStatus(
+        msg,
+        seconds != 0 ? 1003 : 1004,
+        seconds != 0 ? seconds + (seconds != 1 ? ' seconds' : ' second(why?)') : '');
+}
+
+function replyTorMessageWithStatus(msg, status, suffix) {
     var errorDesc = errors.getError(status);
     // Help message special case. Setting header
     if (status == 0) {
         errorDesc.setAuthor(client.user.username, client.user.avatarURL());
     }
-    msg.channel.messages.channel.send(errors.getError(status));
+    if (msg.channel.type == 'dm') {
+        msg.reply(errors.getError(status, suffix))
+    }
+    else {
+        msg.channel.messages.channel.send(errors.getError(status, suffix));
+    }
 }
 
 function canConfigure(msg) {
     return msg.member.roles.cache.find(role => metadata.permissions.ROLES.includes(role.name));
+}
+
+// Why doesn't js have an inbuilt function for this?
+function isNumeric(value) {
+    return /^\d+$/.test(value);
 }
 
 client.login(auth.token);

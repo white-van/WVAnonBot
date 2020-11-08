@@ -14,7 +14,6 @@ function getOrSetEncryptor(bufferIv) {
     return bufferIv;
 }
 
-// TODO: Cleanup all this by making this enum based
 function setChannelDestinations(colName, channelId) {
     var stmt = db.prepare('UPDATE channelDestinations SET ' + colName + ' = ' + channelId);
     stmt.run();
@@ -25,10 +24,40 @@ function getChannelDestination(colName) {
     return stmt.get().channelID;
 }
 
+function setConfigurationTimer(colName, seconds) {
+    var stmt = db.prepare('UPDATE configuration SET ' + colName + ' = ' + seconds);
+    stmt.run();
+}
+
+function getConfigurationTimer(colName) {
+    var stmt = db.prepare('SELECT ' + colName + ' AS config FROM configuration');
+    return stmt.get().config;
+}
+
+function setMessageBlocker(encryptedUser, reason, dateOfUnban) {
+    stmt = db.prepare('INSERT INTO messageBlocker VALUES (?, ?, ?)');
+    stmt.run(encryptedUser, reason, dateOfUnban);
+}
+
+function getMessageBlocker(encryptedUser) {
+    var stmt = db.prepare('SELECT reason, date FROM messageBlocker WHERE encryptedUserId = ?');
+    return stmt.get(encryptedUser);
+}
+
+function deleteMessageBlocker(encryptedUser) {
+    var stmt = db.prepare('DELETE FROM messageBlocker WHERE encryptedUserId = ?');
+    stmt.run(encryptedUser);
+}
+
 module.exports = {
     getOrSetEncryptor,
     setChannelDestinations,
-    getChannelDestination
+    getChannelDestination,
+    setConfigurationTimer,
+    getConfigurationTimer,
+    setMessageBlocker,
+    getMessageBlocker,
+    deleteMessageBlocker
 }
 
 // Initial setup
@@ -47,11 +76,14 @@ function initializeTables() {
     stmt.run();
 
     // Configuration settings
-    db.prepare('CREATE TABLE IF NOT EXISTS configuration (slowmodeTimer INTEGER)');
+    stmt = db.prepare(
+        'CREATE TABLE IF NOT EXISTS configuration ('
+        + Object.values(metadata.configuration).join(' INTEGER, ')
+        + ' TEXT)');
     stmt.run();
-    db.prepare('INSERT INTO configuration VALUES (0)');
+    stmt = db.prepare('INSERT INTO configuration VALUES (0, 0)');
     stmt.run();
-    
+
     // Message blockers
     stmt = db.prepare('CREATE TABLE IF NOT EXISTS messageBlocker (encryptedUserId TEXT, reason TEXT, date TEXT)');
     stmt.run();
