@@ -17,7 +17,8 @@ const configuration = {
 };
 
 const permissions = {
-    ROLES: ['admin', 'moderator']
+    ROLES: ['admin', 'moderator'],
+    DEEPTALKS : ['admin', 'moderator', 'lets-talk']
 };
 
 Object.freeze(channels);

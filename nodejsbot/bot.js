@@ -20,24 +20,41 @@ client.on('message', msg => {
     if (msg.channel.type == 'dm') {
         submitAnon(msg);
     }
-    else if (msg.channel.type == 'text' && canConfigure(msg)) {
+    else if (msg.channel.type == 'text' && canConfigure(msg, metadata.permissions.CONFIGURE)) {
         parseArguments(msg);
     }
 });
 
 // Central functionality
 function submitAnon(msg) {
-    var msgStripped = msg.content.replace(/^(!deeptalks)/,"");
-    var anonChannel = database.getChannelDestination(metadata.channels.ANONCHANNEL);
     var anonLogsChannel = database.getChannelDestination(metadata.channels.ANONLOGS);
-    var deepTalksChannel = database.getChannelDestination(metadata.channels.DEEPTALKS);
+    var destinationChannel = '';
 
-    if (anonLogsChannel == '' || anonChannel == '' || deepTalksChannel == '') {
-        msg.reply('The bot first needs to be configured!');
+    var params = msg.content.split(' ');
+    switch (params[0]) {
+        case '!help':
+            replyTorMessageWithStatus(msg, 1);
+            return;
+        case '!send':
+            destinationChannel = database.getChannelDestination(metadata.channels.ANONCHANNEL);
+            break;
+        case '!send-deep':
+            destinationChannel = database.getChannelDestination(metadata.channels.DEEPTALKS);
+            break;
+        default:
+            replyTorMessageWithStatus(msg, 2009);
+            return;
+    }
+
+    // No message provided to send
+    if (params.length < 2) {
+        replyTorMessageWithStatus(msg, 2009);
         return;
     }
-    else if (msgStripped.replace(' ', '') == '') {
-        msg.reply('Give me something proper!');
+
+    var messageToSend = reconstructMessage(params.slice(1, params.length));
+    if (anonLogsChannel == '' || destinationChannel == '') {
+        msg.reply('The bot first needs to be configured!');
         return;
     }
 
@@ -47,33 +64,24 @@ function submitAnon(msg) {
         return;
     }
 
-    var msgToSend = new discord.MessageEmbed()
-        .setDescription(msgStripped.trim())
+    var msgEmbed = new discord.MessageEmbed()
+        .setDescription(messageToSend.trim())
         .setColor(3447003)
         .setTimestamp();
 
-    var anonChannelDestination = client.channels.cache.get(anonChannel);
-    var deepTalkChannelDestination = client.channels.cache.get(deepTalksChannel);
-    var logChannelDestination = client.channels.cache.get(anonLogsChannel);
+    destinationChannelObj = client.channels.cache.get(destinationChannel);
+    destinationChannelObj.send(msgEmbed);
+    msg.reply('Message sent to ' + destinationChannelObj.name);
 
-    if (msg.content.startsWith('!deeptalks ')) {
-        deepTalkChannelDestination.send(msgToSend);
-        msg.reply('Message sent to ' + deepTalkChannelDestination.name);
-    }
-    else {
-        anonChannelDestination.send(msgToSend);
-        msg.reply('Message sent to ' + anonChannelDestination.name);
-    }
-
-    msgToSend.addFields({
+    msgEmbed.addFields({
         name: 'Anon ID',
         value: encryptor.encrypt(msg.author.id)
     },
     {
         name: 'Target channel',
-        value: msg.content.startsWith('!deeptalks ') ? deepTalkChannelDestination.name : anonChannelDestination.name
+        value: destinationChannelObj.name
     });
-    logChannelDestination.send(msgToSend);
+    client.channels.cache.get(anonLogsChannel).send(msgEmbed);
 }
 
 function parseArguments(msg) {
@@ -168,7 +176,7 @@ function handleBanCommand(params, msg) {
             replyTorMessageWithStatus(msg, 2006);
             return;
         }
-        reason = reconstructReason(params.slice(4, params.length));
+        reason = reconstructMessage(params.slice(4, params.length));
         var unbanTime = moment().utc();
         unbanTime = moment(unbanTime).add(arg3, 's');
 
@@ -181,7 +189,7 @@ function handleBanCommand(params, msg) {
         replyTorMessageWithStatus(msg, 2007);
         return;
     }
-    reason = reconstructReason(params.slice(3, params.length));
+    reason = reconstructMessage(params.slice(3, params.length));
     database.setMessageBlocker(anonId, metadata.blockReason.PERMBAN, reason, '');
     replyTorMessageWithStatus(msg, 1006, reason);
 }
@@ -197,7 +205,7 @@ function handleUnbanCommand(params, msg) {
     replyTorMessageWithStatus(msg, 1007, anonId);
 }
 
-function reconstructReason(params) {
+function reconstructMessage(params) {
     return params.join(' ');
 }
 
@@ -215,8 +223,8 @@ function replyTorMessageWithStatus(msg, status, suffix) {
     }
 }
 
-function canConfigure(msg) {
-    return msg.member.roles.cache.find(role => metadata.permissions.ROLES.includes(role.name));
+function canConfigure(msg, allowedRoles) {
+    return msg.member.roles.cache.find(role => allowedRoles.includes(role.name));
 }
 
 // Why doesn't js have an inbuilt function for this?

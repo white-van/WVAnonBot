@@ -1,7 +1,7 @@
 const discord = require('discord.js');
 
 const errorMap = {
-    // Help message
+    // Help message for server
     0 : new discord.MessageEmbed()
         .setDescription('WV\'s custom anon bot designed to allow for maximum admin aboose')
         .setColor(3447003)
@@ -23,6 +23,16 @@ const errorMap = {
                     + 'NOTE: User will see ban reason when they attempt to send a message to the bot'
             })
         .setTimestamp(),
+    // Help message for user
+    1 : new discord.MessageEmbed()
+        .setDescription('User commands')
+        .setColor(3447003)
+        .addFields({
+            name: 'Sending messages',
+            value: '!send message -> Sends a message to the anonymous chat\n'
+                + '!send-deep message -> Sends a message to the deep-talks channel'
+            })
+        .setTimestamp(),
     // Success
     1000 : 'Logs channel configured successfully',
     1001 : 'Anon channel configured successfully',
@@ -42,6 +52,7 @@ const errorMap = {
     2006 : 'Improper tempban command provided. Follow the format of !anon tempban user seconds reason',
     2007 : 'Improper permban command provided. Follow the format of !anon permban user reason',
     2008 : 'Improper unban command provided. Follow the format of !anon unban user',
+    2009 : 'Command unrecognized. Type in !help to see everything available to you',
     // Message blocks
     3000 : 'Slowmode is active. Try sending in ',
     3001 : 'You\'ve send too many messages within a short timeframe. Try again in ',
