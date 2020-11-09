@@ -17,7 +17,7 @@ const configuration = {
 };
 
 const permissions = {
-    ROLES: ['admin', 'moderator'],
+    CONFIGURE: ['admin', 'moderator'],
     DEEPTALKS : ['admin', 'moderator', 'lets-talk']
 };
 
