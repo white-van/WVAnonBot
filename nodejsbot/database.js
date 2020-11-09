@@ -34,13 +34,20 @@ function getConfigurationTimer(colName) {
     return stmt.get().config;
 }
 
-function setMessageBlocker(encryptedUser, reason, dateOfUnban) {
-    stmt = db.prepare('INSERT INTO messageBlocker VALUES (?, ?, ?)');
-    stmt.run(encryptedUser, reason, dateOfUnban);
+function setMessageBlocker(encryptedUser, reason, explanation, dateOfUnban) {
+    // Update if exists, else create
+    var stmt = db.prepare('SELECT reason, explanation, date FROM messageBlocker WHERE encryptedUserId = ?');
+    if (stmt.get(encryptedUser)) {
+        stmt = db.prepare('UPDATE messageBlocker SET reason = ?, explanation = ?, date = ? WHERE encryptedUserId = ?');
+        stmt.run(reason, explanation, dateOfUnban, encryptedUser);
+        return;
+    }
+    stmt = db.prepare('INSERT INTO messageBlocker VALUES (?, ?, ?, ?)');
+    stmt.run(encryptedUser, reason, explanation, dateOfUnban);
 }
 
 function getMessageBlocker(encryptedUser) {
-    var stmt = db.prepare('SELECT reason, date FROM messageBlocker WHERE encryptedUserId = ?');
+    var stmt = db.prepare('SELECT reason, explanation, date FROM messageBlocker WHERE encryptedUserId = ?');
     return stmt.get(encryptedUser);
 }
 
@@ -91,7 +98,7 @@ function initializeTables() {
     stmt.run();
 
     // Message blockers
-    stmt = db.prepare('CREATE TABLE IF NOT EXISTS messageBlocker (encryptedUserId TEXT, reason TEXT, date TEXT)');
+    stmt = db.prepare('CREATE TABLE IF NOT EXISTS messageBlocker (encryptedUserId TEXT, reason TEXT, explanation TEXT, date TEXT)');
     stmt.run();
 }
 

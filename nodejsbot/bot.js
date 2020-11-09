@@ -1,4 +1,5 @@
 const discord = require('discord.js');
+const moment = require('moment');
 const client = new discord.Client();
 const auth = require('./auth.json');
 const encryptor = require('./encryptor.js');
@@ -89,6 +90,13 @@ function parseArguments(msg) {
             case 'slowmode':
                 handleSlowmodeCommand(params, msg);
                 break;
+            case 'tempban':
+            case 'permban':
+                handleBanCommand(params, msg);
+                break;
+            case 'unban':
+
+                break;
             default:
                 replyTorMessageWithStatus(msg, 2000);
                 break;
@@ -140,13 +148,46 @@ function handleSlowmodeCommand(params, msg) {
         replyTorMessageWithStatus(msg, 2005);
         return;
     }
-    
+
     database.deleteAllSlowdowns();
     database.setConfigurationTimer(metadata.configuration.SLOWMODE, seconds);
     replyTorMessageWithStatus(
         msg,
         seconds != 0 ? 1003 : 1004,
         seconds != 0 ? seconds + (seconds != 1 ? ' seconds' : ' second(why?)') : '');
+}
+
+function handleBanCommand(params, msg) {
+    var typeOfBan = params[1];
+    var anonId = params[2];
+    var arg3 = params[3]; // Seconds only in tempban, start of reason otherwise
+
+    var reason = '';
+    if (typeOfBan == 'tempban') {
+        if (!anonId || !arg3 || !isNumeric(arg3) || params.length < 5) {
+            replyTorMessageWithStatus(msg, 2006);
+            return;
+        }
+        reason = reconstructReason(params.slice(4, params.length));
+        var unbanTime = moment().utc();
+        unbanTime = moment(unbanTime).add(arg3, 's');
+
+        database.setMessageBlocker(anonId, metadata.blockReason.TEMPBAN, reason, unbanTime.format('DD MM YYYY HH:mm:ss'));
+        replyTorMessageWithStatus(msg, 1005, reason + '\nUnban date in UTC: ' + unbanTime.format('DD MM YYYY HH:mm:ss'));
+        return;
+    }
+    // Permaban
+    if (!anonId || params.length < 4) {
+        replyTorMessageWithStatus(msg, 2007);
+        return;
+    }
+    reason = reconstructReason(params.slice(3, params.length));
+    database.setMessageBlocker(anonId, metadata.blockReason.PERMBAN, reason, '');
+    replyTorMessageWithStatus(msg, 1006, reason);
+}
+
+function reconstructReason(params) {
+    return params.join(' ');
 }
 
 function replyTorMessageWithStatus(msg, status, suffix) {
