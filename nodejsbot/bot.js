@@ -59,16 +59,21 @@ function submitAnon(msg) {
     replyTorMessageWithStatus(msg, 2009);
     return;
   }
-  var sliceIndex = 1;
-  var isNSFW = false;
-  if (params.length > 2 && params[2] === "nsfw") {
-    sliceIndex = 3;
-    isNSFW = true;
+  var messageToSend;
+  switch (params[2]) {
+    case "nsfw":
+      if (params.length > 3) {
+        messageToSend =
+          "||" + reconstructMessage(params.slice(3, params.length)) + "||";
+      } else {
+        //incase someone sends a msg saying nsfw only
+        messageToSend = reconstructMessage(params.slice(2, params.length));
+      }
+      break;
+    default:
+      messageToSend = reconstructMessage(params.slice(2, params.length));
+      break;
   }
-  var messageToSend = reconstructMessage(
-    params.slice(sliceIndex, params.length),
-    isNSFW
-  );
   if (anonLogsChannel == "" || destinationChannel == "") {
     msg.reply("The bot first needs to be configured!");
     return;
@@ -195,7 +200,7 @@ function handleBanCommand(params, msg) {
       replyTorMessageWithStatus(msg, 2006);
       return;
     }
-    reason = reconstructMessage(params.slice(4, params.length), false);
+    reason = reconstructMessage(params.slice(4, params.length));
     var unbanTime = moment().utc();
     unbanTime = moment(unbanTime).add(arg3, "s");
 
@@ -217,7 +222,7 @@ function handleBanCommand(params, msg) {
     replyTorMessageWithStatus(msg, 2007);
     return;
   }
-  reason = reconstructMessage(params.slice(3, params.length), false);
+  reason = reconstructMessage(params.slice(3, params.length));
   database.setMessageBlocker(anonId, metadata.blockReason.PERMBAN, reason, "");
   replyTorMessageWithStatus(msg, 1006, reason);
 }
@@ -233,12 +238,8 @@ function handleUnbanCommand(params, msg) {
   replyTorMessageWithStatus(msg, 1007, anonId);
 }
 
-function reconstructMessage(params, isNSFW) {
-  s = params.join(" ");
-  if (!isNSFW) {
-    return s;
-  }
-  return "||" + s + "||";
+function reconstructMessage(params) {
+  return params.join(" ");
 }
 
 function replyTorMessageWithStatus(msg, status, suffix) {
