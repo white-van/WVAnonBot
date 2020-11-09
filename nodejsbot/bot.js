@@ -95,7 +95,7 @@ function parseArguments(msg) {
                 handleBanCommand(params, msg);
                 break;
             case 'unban':
-
+                handleUnbanCommand(params, msg);
                 break;
             default:
                 replyTorMessageWithStatus(msg, 2000);
@@ -184,6 +184,17 @@ function handleBanCommand(params, msg) {
     reason = reconstructReason(params.slice(3, params.length));
     database.setMessageBlocker(anonId, metadata.blockReason.PERMBAN, reason, '');
     replyTorMessageWithStatus(msg, 1006, reason);
+}
+
+function handleUnbanCommand(params, msg) {
+    var anonId = params[2];
+    if (!anonId || params.length < 3) {
+        replyTorMessageWithStatus(msg, 2008);
+        return;
+    }
+
+    database.deleteMessageBlocker(anonId);
+    replyTorMessageWithStatus(msg, 1007, anonId);
 }
 
 function reconstructReason(params) {
