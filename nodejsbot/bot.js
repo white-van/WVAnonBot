@@ -60,18 +60,18 @@ function submitAnon(msg) {
     return;
   }
   var messageToSend;
-  switch (params[2]) {
+  switch (params[1]) {
     case "nsfw":
-      if (params.length > 3) {
+      if (params.length > 2) {
         messageToSend =
-          "||" + reconstructMessage(params.slice(3, params.length)) + "||";
+          "||" + reconstructMessage(params.slice(2, params.length)) + "||";
       } else {
         //incase someone sends a msg saying nsfw only
-        messageToSend = reconstructMessage(params.slice(2, params.length));
+        messageToSend = reconstructMessage(params.slice(1, params.length));
       }
       break;
     default:
-      messageToSend = reconstructMessage(params.slice(2, params.length));
+      messageToSend = reconstructMessage(params.slice(1, params.length));
       break;
   }
   if (anonLogsChannel == "" || destinationChannel == "") {

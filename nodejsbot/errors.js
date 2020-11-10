@@ -37,9 +37,9 @@ const errorMap = {
     .addFields({
       name: "Sending messages",
       value:
-        "!send message [msg] -> Sends a message to the anonymous chat\n" +
-        "!send/send-deep message nsfw [msg] -> Sends a message wrapped in spoiler tag to respective anon/deep talks channels\n" +
-        "!send-deep message [msg] -> Sends a message to the deep-talks channel\n",
+        "!send [msg] -> Sends a message to the anonymous chat\n" +
+        "!send/send-deep nsfw [msg] -> Sends a message wrapped in spoiler tag to respective anon/deep talks channels\n" +
+        "!send-deep [msg] -> Sends a message to the deep-talks channel\n",
     })
     .setTimestamp(),
   // Success
