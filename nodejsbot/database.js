@@ -61,6 +61,19 @@ function deleteAllSlowdowns() {
     stmt.run(metadata.blockReason.SLOWMODE);
 }
 
+function getAndIncrementMessageCounter() {
+    var stmt = db.prepare('SELECT count FROM messageCounter');
+    var result = stmt.get();
+    if (!result) {
+        stmt = db.prepare('INSERT INTO messageCounter VALUES (1)');
+        stmt.run();
+        return 1;
+    }
+    stmt = db.prepare('UPDATE messageCounter SET count = count + 1');
+    stmt.run();
+    return result.count;
+}
+
 module.exports = {
     getOrSetEncryptor,
     setChannelDestinations,
@@ -70,7 +83,8 @@ module.exports = {
     setMessageBlocker,
     getMessageBlocker,
     deleteMessageBlocker,
-    deleteAllSlowdowns
+    deleteAllSlowdowns,
+    getAndIncrementMessageCounter
 }
 
 // Initial setup
@@ -99,6 +113,10 @@ function initializeTables() {
 
     // Message blockers
     stmt = db.prepare('CREATE TABLE IF NOT EXISTS messageBlocker (encryptedUserId TEXT, reason TEXT, explanation TEXT, date TEXT)');
+    stmt.run();
+
+    // Message counter
+    stmt = db.prepare('CREATE TABLE IF NOT EXISTS messageCounter (count INTEGER)');
     stmt.run();
 }
 
