@@ -39,7 +39,26 @@ const errorMap = {
       value:
         "!send [msg] -> Sends a message to the anonymous chat\n" +
         "!send/send-deep nsfw [msg] -> Sends a message wrapped in spoiler tag to respective anon/deep talks channels\n" +
-        "!send-deep [msg] -> Sends a message to the deep-talks channel\n",
+        "!send-deep [msg] -> Sends a message to the deep-talks channel\n" +
+        "!rules-> View the rules\n",
+    })
+    .setTimestamp(),
+  // Rules for user
+  2: new discord.MessageEmbed()
+    .setDescription("WVAnon")
+    .setColor(3447003)
+    .addFields({
+      name: "Rules",
+      value:
+        "1. NSFW content must be wrapped in a spoiler tag (use the nsfw argument!)\n" +
+        "2. No impersonation\n" +
+        "3. All rules in <#534583763217285131> still apply!",
+    })
+    .addFields({
+      name: "Contribution",
+      value:
+        "Visit https://github.com/white-van/WVAnonBot to view the codebase\n" +
+        "Contributions welcome!",
     })
     .setTimestamp(),
   // Success
