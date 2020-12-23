@@ -74,30 +74,30 @@ function deleteAllSlowdowns() {
 }
 
 function getAndIncrementMessageCounter() {
-    var stmt = db.prepare('SELECT count FROM messageCounter');
-    var result = stmt.get();
-    if (!result) {
-        stmt = db.prepare('INSERT INTO messageCounter VALUES (1)');
-        stmt.run();
-        return 1;
-    }
-    stmt = db.prepare('UPDATE messageCounter SET count = count + 1');
+  var stmt = db.prepare("SELECT count FROM messageCounter");
+  var result = stmt.get();
+  if (!result) {
+    stmt = db.prepare("INSERT INTO messageCounter VALUES (1)");
     stmt.run();
-    return result.count;
+    return 1;
+  }
+  stmt = db.prepare("UPDATE messageCounter SET count = count + 1");
+  stmt.run();
+  return result.count;
 }
 
 module.exports = {
-    getOrSetEncryptor,
-    setChannelDestinations,
-    getChannelDestination,
-    setConfigurationTimer,
-    getConfigurationTimer,
-    setMessageBlocker,
-    getMessageBlocker,
-    deleteMessageBlocker,
-    deleteAllSlowdowns,
-    getAndIncrementMessageCounter
-}
+  getOrSetEncryptor,
+  setChannelDestinations,
+  getChannelDestination,
+  setConfigurationTimer,
+  getConfigurationTimer,
+  setMessageBlocker,
+  getMessageBlocker,
+  deleteMessageBlocker,
+  deleteAllSlowdowns,
+  getAndIncrementMessageCounter,
+};
 
 // Initial setup
 function initializeTables() {
@@ -125,13 +125,17 @@ function initializeTables() {
   stmt = db.prepare("INSERT INTO configuration VALUES (0, 0)");
   stmt.run();
 
-    // Message blockers
-    stmt = db.prepare('CREATE TABLE IF NOT EXISTS messageBlocker (encryptedUserId TEXT, reason TEXT, explanation TEXT, date TEXT)');
-    stmt.run();
+  // Message blockers
+  stmt = db.prepare(
+    "CREATE TABLE IF NOT EXISTS messageBlocker (encryptedUserId TEXT, reason TEXT, explanation TEXT, date TEXT)"
+  );
+  stmt.run();
 
-    // Message counter
-    stmt = db.prepare('CREATE TABLE IF NOT EXISTS messageCounter (count INTEGER)');
-    stmt.run();
+  // Message counter
+  stmt = db.prepare(
+    "CREATE TABLE IF NOT EXISTS messageCounter (count INTEGER)"
+  );
+  stmt.run();
 }
 
 initializeTables();

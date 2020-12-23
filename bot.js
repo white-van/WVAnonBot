@@ -18,6 +18,7 @@ client.on("message", (msg) => {
     return;
   }
   if (msg.channel.type == "dm") {
+    //if has_accepted
     submitAnon(msg);
   } else if (
     msg.channel.type == "text" &&
@@ -38,6 +39,9 @@ function submitAnon(msg) {
   switch (params[0]) {
     case "!help":
       replyTorMessageWithStatus(msg, 1);
+      return;
+    case "!rules":
+      replyTorMessageWithStatus(msg, 2);
       return;
     case "!send":
       destinationChannel = database.getChannelDestination(

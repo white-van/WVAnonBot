@@ -9,6 +9,7 @@ const blockReason = {
   SPAM: "spamprotection",
   TEMPBAN: "tempban",
   PERMBAN: "permban",
+  RULES: "RULES",
 };
 
 const configuration = {
