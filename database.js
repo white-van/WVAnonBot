@@ -79,7 +79,7 @@ function getAndIncrementMessageCounter() {
   if (!result) {
     stmt = db.prepare("INSERT INTO messageCounter VALUES (1)");
     stmt.run();
-    return 1;
+    return 0;
   }
   stmt = db.prepare("UPDATE messageCounter SET count = count + 1");
   stmt.run();
