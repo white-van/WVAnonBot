@@ -8,7 +8,7 @@ As of December 22nd, 2020, 2300 anonymous messages have been sent!
 2. An update to the Discord API resulted in Voltaire being unable to "see" users. Users had to run a bot command (like !volt help) to gain access, however this could reveal their identity to anyone who saw the message and to the admins in the deleted logs.
 3. The commands for both were long! We wanted the commands to be short and sweet.
 
-Features:
+## Features
 
 - Supports sending messages to two channels (anon-msgs and deep-talks) which can be configured
 - Ban users
@@ -49,3 +49,8 @@ You will need administrator privileges in your discord server to set the channel
 1. Fork the repo
 2. Branch off main
 3. Create a pull request from your fork into main
+
+## Authors 
+
+- <a href="https://github.com/SergeyGV">Sergey Gayvoronsky</a>
+- <a href="https://github.com/jcserv">Jarrod Servilla</a>
