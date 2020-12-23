@@ -94,16 +94,10 @@ function submitAnon(msg) {
   destinationChannelObj.send(msgEmbed);
   msg.reply("Message sent to " + destinationChannelObj.name);
 
-  msgEmbed.addFields(
-    {
-      name: "Anon ID",
-      value: encryptor.encrypt(msg.author.id),
-    },
-    {
-      name: "Target channel",
-      value: destinationChannelObj.name,
-    }
-  );
+  msgEmbed.addFields({
+    name: "Target channel",
+    value: destinationChannelObj.name,
+  });
   client.channels.cache.get(anonLogsChannel).send(msgEmbed);
 }
 

@@ -1,15 +1,36 @@
 # WVAnonBot
+
 UTM White Van's Anonymous message bot.
 
-## Starting up
-You will need to fill out `auth.json` or `config.env` for javascript and python respectively, with your discord token for it to work.
+Features:
+- Supports sending messages to two channels (anon-msgs and deep-talks) which can be configured
+- Ban users
+- Anonymity for users
+- Slow mode
 
+## Getting Started
 
-## TODO
+Requires: <a href="https://nodejs.org/en/">Node.js</a>
 
-Currently there are 2 starter codes present, Javascript and Python.
-Depending on how we want to continue with this, we can do either or
+1. <a href="https://discordpy.readthedocs.io/en/latest/discord.html">Create a Discord Bot Account</a>
+2. Create an auth.json file and paste in your token
+``touch auth.json``
+```
+    {
+        "token": "${YOUR TOKEN HERE}"
+    }
+```
+You will need to fill out `auth.json` or `config.env`.
+3. ``cd nodejsbot && npm install``
+4. ``node bot.js`` to run the bot!
+4. Create three channels: one for logs, one for anon-messages, one for deep-talks (you will need administrator privileges in your discord server)
+5. !anon set log #[log-channel]
+6. !anon set anon #[anon-msgs]
+7. !anon set deeptalks #[deep-talks]
+8. You're good to go!
 
-Msg send, anon to channel
-Ban user feature
+## Contributing
 
+1. Fork the repo
+2. Branch off main
+3. Create a pull request from your fork into main
