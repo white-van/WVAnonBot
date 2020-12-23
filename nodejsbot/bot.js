@@ -88,7 +88,8 @@ function submitAnon(msg) {
   var msgEmbed = new discord.MessageEmbed()
     .setDescription(messageToSend.trim())
     .setColor(3447003)
-    .setTimestamp();
+    .setTimestamp()
+    .setFooter("#" + database.getAndIncrementMessageCounter().toString());
 
   destinationChannelObj = client.channels.cache.get(destinationChannel);
   destinationChannelObj.send(msgEmbed);
