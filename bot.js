@@ -89,26 +89,25 @@ function submitAnon(msg) {
     return;
   }
 
+  const msg_id = database.getAndIncrementMessageCounter();
+  const anon_id = encryptor.encrypt(msg.author.id);
+
+  database.insertMsgMap(anon_id, msg_id);
+
   var msgEmbed = new discord.MessageEmbed()
     .setDescription(messageToSend.trim())
     .setColor(3447003)
     .setTimestamp()
-    .setFooter("#" + database.getAndIncrementMessageCounter().toString());
+    .setFooter("#" + msg_id.toString());
 
   destinationChannelObj = client.channels.cache.get(destinationChannel);
   destinationChannelObj.send(msgEmbed);
   msg.reply("Message sent to " + destinationChannelObj.name);
 
-  msgEmbed.addFields(
-    {
-      name: "Anon ID",
-      value: encryptor.encrypt(msg.author.id),
-    },
-    {
-      name: "Target channel",
-      value: destinationChannelObj.name,
-    }
-  );
+  msgEmbed.addFields({
+    name: "Target channel",
+    value: destinationChannelObj.name,
+  });
   client.channels.cache.get(anonLogsChannel).send(msgEmbed);
 }
 
@@ -196,8 +195,10 @@ function handleSlowmodeCommand(params, msg) {
 
 function handleBanCommand(params, msg) {
   var typeOfBan = params[1];
-  var anonId = params[2];
+  var msgId = params[2];
   var arg3 = params[3]; // Seconds only in tempban, start of reason otherwise
+
+  var anonId = database.getAnonIdFromMsgId(msgId);
 
   var reason = "";
   if (typeOfBan == "tempban") {
@@ -233,7 +234,9 @@ function handleBanCommand(params, msg) {
 }
 
 function handleUnbanCommand(params, msg) {
-  var anonId = params[2];
+  var msgId = params[2];
+  var anonId = database.getAnonIdFromMsgId(msgId);
+
   if (!anonId || params.length < 3) {
     replyTorMessageWithStatus(msg, 2008);
     return;

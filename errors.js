@@ -67,8 +67,8 @@ const errorMap = {
   1002: "Deep talks channel configured successfully",
   1003: "Slowmode successfully configured to ",
   1004: "Slowmode turned off",
-  1005: "Anon user id was temp banned with reason: ",
-  1006: "Anon user id was perm banned with reason: ",
+  1005: "Anon user was temp banned with reason: ",
+  1006: "Anon user was perm banned with reason: ",
   1007: "Following anon user was unbanned: ",
   // Input configuration problems
   2000: "Command unrecognized. Run !anon help for all available commands",
@@ -81,6 +81,7 @@ const errorMap = {
   2007: "Improper permban command provided. Follow the format of !anon permban user reason",
   2008: "Improper unban command provided. Follow the format of !anon unban user",
   2009: "Command unrecognized. Type in !help to see everything available to you",
+  2010: "Improper msgId value provided. Please try again.",
   // Message blocks
   3000: "Slowmode is active. Try sending in ",
   3001: "You've send too many messages within a short timeframe. Try again in ",

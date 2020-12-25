@@ -86,6 +86,29 @@ function getAndIncrementMessageCounter() {
   return result.count;
 }
 
+function getAnonIdFromMsgId(msgId) {
+  var stmt = db.prepare("SELECT anon_id FROM msgMap WHERE msg_id = ?");
+  const result = stmt.get(msgId);
+  if (!result) {
+    return;
+  }
+  return result.anon_id;
+}
+
+function insertMsgMap(anon_id, msg_id) {
+  // Update if exists, else create
+  var stmt = db.prepare("SELECT anon_id FROM msgMap WHERE msg_id = ?");
+  if (stmt.get(msg_id)) {
+    stmt = db.prepare(
+      "UPDATE msgMap SET anon_id = ? WHERE encryptedUserId = ?"
+    );
+    stmt.run(anon_id, msg_id);
+    return;
+  }
+  stmt = db.prepare("INSERT INTO msgMap VALUES (?, ?)");
+  stmt.run(msg_id, anon_id);
+}
+
 module.exports = {
   getOrSetEncryptor,
   setChannelDestinations,
@@ -97,12 +120,20 @@ module.exports = {
   deleteMessageBlocker,
   deleteAllSlowdowns,
   getAndIncrementMessageCounter,
+  getAnonIdFromMsgId,
+  insertMsgMap,
 };
 
 // Initial setup
 function initializeTables() {
   // Encryption storage for persistency of IDs
   var stmt = db.prepare("CREATE TABLE IF NOT EXISTS encryptor (ivValue TEXT)");
+  stmt.run();
+
+  // anon_id to msg_id table
+  var stmt = db.prepare(
+    "CREATE TABLE IF NOT EXISTS msgMap ( msg_id INTEGER PRIMARY KEY, anon_id TEXT NOT NULL )"
+  );
   stmt.run();
 
   // Channel storage

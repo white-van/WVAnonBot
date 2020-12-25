@@ -1,6 +1,6 @@
 # WVAnonBot
 
-WVAnon is a Discord bot developed by the UTM White Van Discord to enable users to send anonymous messages. We tried  <a href="https://disforge.com/bot/288-juzoconfession">JuzoConfession</a> and <a href="https://nminchow.github.io/VoltaireWeb/">Voltaire</a>, but neither of them satisfied us in terms of usability, security, and privacy.
+WVAnon is a Discord bot developed by the UTM White Van Discord to enable users to send anonymous messages. We tried <a href="https://disforge.com/bot/288-juzoconfession">JuzoConfession</a> and <a href="https://nminchow.github.io/VoltaireWeb/">Voltaire</a>, but neither of them satisfied us in terms of usability, security, and privacy.
 
 As of December 22nd, 2020, 2300 anonymous messages have been sent!
 
@@ -21,7 +21,7 @@ Requires: <a href="https://nodejs.org/en/">Node.js</a>
 
 1. <a href="https://discordpy.readthedocs.io/en/latest/discord.html">Create a Discord Bot Account</a>
 2. Create an auth.json file and paste in your token
-   
+
 `touch auth.json`
 
 ```
@@ -34,10 +34,11 @@ Requires: <a href="https://nodejs.org/en/">Node.js</a>
 
 4. `node bot.js` to run the bot!
 
-5. Create three channels in your Discord server: one for logs, one for anon-messages, one for deep-talks. 
-You will need administrator privileges in your discord server to set the channels.
+5. Create three channels in your Discord server: one for logs, one for anon-messages, one for deep-talks.
+   You will need administrator privileges in your discord server to set the channels.
 
-6. 
+6.
+
 ```
 !anon set log #[log-channel]
 !anon set anon #[anon-msgs]
@@ -50,7 +51,7 @@ You will need administrator privileges in your discord server to set the channel
 2. Branch off main
 3. Create a pull request from your fork into main
 
-## Authors 
+## Authors
 
 - <a href="https://github.com/SergeyGV">Sergey Gayvoronsky</a>
 - <a href="https://github.com/jcserv">Jarrod Servilla</a>
