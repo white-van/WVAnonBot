@@ -40,7 +40,7 @@ const errorMap = {
         "!send [msg] -> Sends a message to the anonymous chat\n" +
         "!send/send-deep nsfw [msg] -> Sends a message wrapped in spoiler tag to respective anon/deep talks channels\n" +
         "!send-deep [msg] -> Sends a message to the deep-talks channel\n" +
-        "!rules-> View the rules\n",
+        "!rules -> View the rules\n",
     })
     .setTimestamp(),
   // Rules for user
@@ -77,9 +77,9 @@ const errorMap = {
   2003: "Anon channel not found or not provided. Make sure the channel is properly tagged (ex: #anonymous-messages)",
   2004: "Deep talks channel not found or not provided. Make sure the channel is properly tagged (ex: #deep-talks)",
   2005: "Improper slowmode command provided, or the number is negative. Follow the format of !anon slowmode second",
-  2006: "Improper tempban command provided. Follow the format of !anon tempban user seconds reason",
-  2007: "Improper permban command provided. Follow the format of !anon permban user reason",
-  2008: "Improper unban command provided. Follow the format of !anon unban user",
+  2006: "Improper tempban command provided. Follow the format of !anon tempban msgId seconds reason",
+  2007: "Improper permban command provided. Follow the format of !anon permban msgId reason",
+  2008: "Improper unban command provided. Follow the format of !anon msgId user",
   2009: "Command unrecognized. Type in !help to see everything available to you",
   2010: "Improper msgId value provided. Please try again.",
   // Message blocks
