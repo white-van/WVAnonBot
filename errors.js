@@ -82,6 +82,8 @@ const errorMap = {
   2008: "Improper unban command provided. Follow the format of !anon msgId user",
   2009: "Command unrecognized. Type in !help to see everything available to you",
   2010: "Improper msgId value provided. Please try again.",
+  2011: "Number of message to reply to is either invalid or belongs to a message that was sent before the " +
+        "reply-feature update. Only messages that were sent after the reply-feature update can be replied to.",
   // Message blocks
   3000: "Slowmode is active. Try sending in ",
   3001: "You've send too many messages within a short timeframe. Try again in ",

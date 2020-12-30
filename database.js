@@ -105,22 +105,6 @@ function addMessageAndGetNumber(msg) {
 
 }
 
-
-/*
-function addMessageAndGetNumber(msg) {
-  var stmt = db.prepare("SELECT count FROM messageCounter");
-  var result = stmt.get();
-  const oldMessageCount = result.count;
-  stmt = db.prepare("SELECT * FROM messages");
-  rows = stmt.all();
-  const messageNumber = rows.length + oldMessageCount + 1;
-  stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?)");
-  stmt.run(messageNumber, msg, "");
-  return messageNumber;
-}
- */
-
-
 function updateMessageWithUrl(number, url) {
 
   var stmt = db.prepare("UPDATE messages SET message_url = ? WHERE number = ?");
@@ -138,9 +122,17 @@ function getMessageByNumber(num) {
 
 function getMessageUrlByNumber(num) {
 
-  var stmt = db.prepare("SELECT message_url FROM messages WHERE number = " + num.toString());
-  var row = stmt.get();
-  return row.message_url;
+  var stmt = db.prepare("SELECT count FROM messageCounter");
+  var result = stmt.get();
+  const preUpdateMessageCount = result.count;
+
+  if (num <= preUpdateMessageCount) {
+    return "";
+  }
+
+  stmt = db.prepare("SELECT message_url FROM messages WHERE number = " + num.toString());
+  result = stmt.get();
+  return result.message_url;
 
 }
 

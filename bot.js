@@ -74,6 +74,12 @@ async function submitAnon(msg) {
         const replyNum = params[3];
 
         messageToSend = formatReply(replyNum, params.slice(4, params.length), true);
+
+        if(messageToSend === -1) {
+          replyTorMessageWithStatus(msg, 2011);
+          return;
+        }
+
         messageToStore = "||" + reconstructMessage(params.slice(4, params.length)) + "||";
 
       }
@@ -96,9 +102,15 @@ async function submitAnon(msg) {
 
         const replyNum = params[2];
         messageToSend = formatReply(replyNum, params.slice(3, params.length));
+
+        if(messageToSend === -1) {
+          replyTorMessageWithStatus(msg, 2011);
+          return;
+        }
+
         messageToStore = reconstructMessage(params.slice(3, params.length));
 
-      } else {
+      } else { //TODO: Test this
         //in case someone sends a msg saying reply followed by a number only
         messageToSend = reconstructMessage(params.slice(1, params.length));
         messageToStore = messageToSend;
@@ -152,6 +164,10 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
   var targetMessage = database.getMessageByNumber(replyNum);
   var url = database.getMessageUrlByNumber(replyNum);
+
+  if (url === "") {
+    return -1;
+  }
 
   const maxChars = 130;
   var quoteBlock;
