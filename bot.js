@@ -21,8 +21,8 @@ client.on("message", (msg) => {
     //if has_accepted
     submitAnon(msg);
   } else if (
-    msg.channel.type == "text" &&
-    canConfigure(msg, metadata.permissions.CONFIGURE)
+      msg.channel.type == "text" &&
+      canConfigure(msg, metadata.permissions.CONFIGURE)
   ) {
     parseArguments(msg);
   }
@@ -72,9 +72,6 @@ async function submitAnon(msg) {
 
         console.log("ISNUMERIC: " + isNumeric(params[3]).toString() + "\n======================================");
         const replyNum = params[3];
-
-        //TODO: Make the formatReply method take a boolean isNsfw, so that it will add "||" to the ends of the message
-        //      if it is nsfw
 
         messageToSend = formatReply(replyNum, params.slice(4, params.length), true);
         messageToStore = "||" + reconstructMessage(params.slice(4, params.length)) + "||";
@@ -220,8 +217,8 @@ function handleSetCommand(params, msg) {
     case "anon":
       if (validChannelId) {
         database.setChannelDestinations(
-          metadata.channels.ANONCHANNEL,
-          channelId
+            metadata.channels.ANONCHANNEL,
+            channelId
         );
         replyTorMessageWithStatus(msg, 1001);
       } else {
@@ -252,9 +249,9 @@ function handleSlowmodeCommand(params, msg) {
   database.deleteAllSlowdowns();
   database.setConfigurationTimer(metadata.configuration.SLOWMODE, seconds);
   replyTorMessageWithStatus(
-    msg,
-    seconds != 0 ? 1003 : 1004,
-    seconds != 0 ? seconds + (seconds != 1 ? " seconds" : " second(why?)") : ""
+      msg,
+      seconds != 0 ? 1003 : 1004,
+      seconds != 0 ? seconds + (seconds != 1 ? " seconds" : " second(why?)") : ""
   );
 }
 
@@ -276,15 +273,15 @@ function handleBanCommand(params, msg) {
     unbanTime = moment(unbanTime).add(arg3, "s");
 
     database.setMessageBlocker(
-      anonId,
-      metadata.blockReason.TEMPBAN,
-      reason,
-      unbanTime.format("DD MM YYYY HH:mm:ss")
+        anonId,
+        metadata.blockReason.TEMPBAN,
+        reason,
+        unbanTime.format("DD MM YYYY HH:mm:ss")
     );
     replyTorMessageWithStatus(
-      msg,
-      1005,
-      reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
+        msg,
+        1005,
+        reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
     );
     return;
   }
@@ -330,7 +327,7 @@ function replyTorMessageWithStatus(msg, status, suffix) {
 
 function canConfigure(msg, allowedRoles) {
   return msg.member.roles.cache.find((role) =>
-    allowedRoles.includes(role.name)
+      allowedRoles.includes(role.name)
   );
 }
 
@@ -340,3 +337,4 @@ function isNumeric(value) {
 }
 
 client.login(auth.token);
+

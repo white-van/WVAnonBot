@@ -16,21 +16,21 @@ function getOrSetEncryptor(bufferIv) {
 
 function setChannelDestinations(colName, channelId) {
   var stmt = db.prepare(
-    "UPDATE channelDestinations SET " + colName + " = " + channelId
+      "UPDATE channelDestinations SET " + colName + " = " + channelId
   );
   stmt.run();
 }
 
 function getChannelDestination(colName) {
   var stmt = db.prepare(
-    "SELECT " + colName + " AS channelID FROM channelDestinations"
+      "SELECT " + colName + " AS channelID FROM channelDestinations"
   );
   return stmt.get().channelID;
 }
 
 function setConfigurationTimer(colName, seconds) {
   var stmt = db.prepare(
-    "UPDATE configuration SET " + colName + " = " + seconds
+      "UPDATE configuration SET " + colName + " = " + seconds
   );
   stmt.run();
 }
@@ -43,11 +43,11 @@ function getConfigurationTimer(colName) {
 function setMessageBlocker(encryptedUser, reason, explanation, dateOfUnban) {
   // Update if exists, else create
   var stmt = db.prepare(
-    "SELECT reason, explanation, date FROM messageBlocker WHERE encryptedUserId = ?"
+      "SELECT reason, explanation, date FROM messageBlocker WHERE encryptedUserId = ?"
   );
   if (stmt.get(encryptedUser)) {
     stmt = db.prepare(
-      "UPDATE messageBlocker SET reason = ?, explanation = ?, date = ? WHERE encryptedUserId = ?"
+        "UPDATE messageBlocker SET reason = ?, explanation = ?, date = ? WHERE encryptedUserId = ?"
     );
     stmt.run(reason, explanation, dateOfUnban, encryptedUser);
     return;
@@ -58,7 +58,7 @@ function setMessageBlocker(encryptedUser, reason, explanation, dateOfUnban) {
 
 function getMessageBlocker(encryptedUser) {
   var stmt = db.prepare(
-    "SELECT reason, explanation, date FROM messageBlocker WHERE encryptedUserId = ?"
+      "SELECT reason, explanation, date FROM messageBlocker WHERE encryptedUserId = ?"
   );
   return stmt.get(encryptedUser);
 }
@@ -91,26 +91,13 @@ function getAndIncrementMessageCounter() {
 
 function addMessageAndGetNumber(msg) {
 
-  var stmt = db.prepare("SELECT * FROM messages");
-  var rows = stmt.all();
-  var messageNumber = rows.length + 1;
-
-  //---------------commented out code-----------------------
-  /*
   var stmt = db.prepare("SELECT count FROM messageCounter");
   var result = stmt.get();
-  const oldMessageCount = result.count;
+  const preUpdateMessageCount = result.count;
+  stmt = db.prepare("SELECT * FROM messages");
+  result = stmt.all();
+  const messageNumber = result.length + preUpdateMessageCount + 1;
 
-  stmt = db.prepare("SELECT COUNT(*) FROM messages");
-  result = stmt.get();
-  const messageNumber = result.count + oldMessageCount + 1;
-   */
-  //---------------commented out code-----------------------
-
-  console.log("LOG: " + rows.length.toString() + "\n==============================================================");
-
-  //stmt = db.prepare("INSERT INTO messages (number, message_content) VALUES (?, ?)");
-  //stmt.run(messageNumber, msg);
   stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?)");
   stmt.run(messageNumber, msg, "");
 
@@ -121,20 +108,15 @@ function addMessageAndGetNumber(msg) {
 
 /*
 function addMessageAndGetNumber(msg) {
-
   var stmt = db.prepare("SELECT count FROM messageCounter");
   var result = stmt.get();
   const oldMessageCount = result.count;
-
   stmt = db.prepare("SELECT * FROM messages");
   rows = stmt.all();
   const messageNumber = rows.length + oldMessageCount + 1;
-
   stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?)");
   stmt.run(messageNumber, msg, "");
-
   return messageNumber;
-
 }
  */
 
@@ -178,7 +160,7 @@ function insertMsgMap(anon_id, msg_id) {
   var stmt = db.prepare("SELECT anon_id FROM msgMap WHERE msg_id = ?");
   if (stmt.get(msg_id)) {
     stmt = db.prepare(
-      "UPDATE msgMap SET anon_id = ? WHERE encryptedUserId = ?"
+        "UPDATE msgMap SET anon_id = ? WHERE encryptedUserId = ?"
     );
     stmt.run(anon_id, msg_id);
     return;
@@ -197,7 +179,7 @@ module.exports = {
   getMessageBlocker,
   deleteMessageBlocker,
   deleteAllSlowdowns,
-  //getAndIncrementMessageCounter,
+  getAndIncrementMessageCounter,
   addMessageAndGetNumber,
   getMessageByNumber,
   getMessageUrlByNumber,
@@ -214,13 +196,13 @@ function initializeTables() {
 
   // anon_id to msg_id table
   var stmt = db.prepare(
-    "CREATE TABLE IF NOT EXISTS msgMap ( msg_id INTEGER PRIMARY KEY, anon_id TEXT NOT NULL )"
+      "CREATE TABLE IF NOT EXISTS msgMap ( msg_id INTEGER PRIMARY KEY, anon_id TEXT NOT NULL )"
   );
   stmt.run();
 
   // Channel storage
   stmt = db.prepare(
-    "CREATE TABLE IF NOT EXISTS channelDestinations (" +
+      "CREATE TABLE IF NOT EXISTS channelDestinations (" +
       Object.values(metadata.channels).join(" TEXT, ") +
       " TEXT)"
   );
@@ -230,7 +212,7 @@ function initializeTables() {
 
   // Configuration settings
   stmt = db.prepare(
-    "CREATE TABLE IF NOT EXISTS configuration (" +
+      "CREATE TABLE IF NOT EXISTS configuration (" +
       Object.values(metadata.configuration).join(" INTEGER, ") +
       " TEXT)"
   );
@@ -240,13 +222,19 @@ function initializeTables() {
 
   // Message blockers
   stmt = db.prepare(
-    "CREATE TABLE IF NOT EXISTS messageBlocker (encryptedUserId TEXT, reason TEXT, explanation TEXT, date TEXT)"
+      "CREATE TABLE IF NOT EXISTS messageBlocker (encryptedUserId TEXT, reason TEXT, explanation TEXT, date TEXT)"
   );
   stmt.run();
 
   // Message counter
   stmt = db.prepare(
-    "CREATE TABLE IF NOT EXISTS messages (number INTEGER PRIMARY KEY, " +
+      "CREATE TABLE IF NOT EXISTS messageCounter (count INTEGER)"
+  );
+  stmt.run();
+
+  // Message number, content, and url
+  stmt = db.prepare(
+      "CREATE TABLE IF NOT EXISTS messages (number INTEGER PRIMARY KEY, " +
       "message_content TEXT NOT NULL, message_url TEXT)"
   );
   stmt.run();
