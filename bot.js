@@ -67,7 +67,22 @@ async function submitAnon(msg) {
   var messageToStore;
   switch (params[1]) {
     case "nsfw":
-      if (params.length > 2) {
+
+      if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
+
+        console.log("ISNUMERIC: " + isNumeric(params[3]).toString() + "\n======================================");
+        const replyNum = params[3];
+
+        //TODO: Make the formatReply method take a boolean isNsfw, so that it will add "||" to the ends of the message
+        //      if it is nsfw
+
+        messageToSend = formatReply(replyNum, params.slice(4, params.length), true);
+        messageToStore = "||" + reconstructMessage(params.slice(4, params.length)) + "||";
+
+      }
+
+      else if (params.length > 2) {
+
         messageToSend =
             "||" + reconstructMessage(params.slice(2, params.length)) + "||";
         messageToStore = messageToSend;
@@ -82,7 +97,7 @@ async function submitAnon(msg) {
 
       if (params.length > 3) {
 
-        replyNum = params[2];
+        const replyNum = params[2];
         messageToSend = formatReply(replyNum, params.slice(3, params.length));
         messageToStore = reconstructMessage(params.slice(3, params.length));
 
@@ -136,7 +151,7 @@ async function submitAnon(msg) {
   client.channels.cache.get(anonLogsChannel).send(msgEmbed);
 }
 
-function formatReply(replyNum, msgArray) {
+function formatReply(replyNum, msgArray, isNsfw) {
 
   var targetMessage = database.getMessageByNumber(replyNum);
   var url = database.getMessageUrlByNumber(replyNum);
@@ -149,8 +164,15 @@ function formatReply(replyNum, msgArray) {
     quoteBlock = "> " + targetMessage.slice(0, maxChars + 1) + "...";
   }
 
+  var message;
+  if(isNsfw) {
+    message = "||" + reconstructMessage(msgArray) + "||";
+  } else {
+    message = reconstructMessage(msgArray);
+  }
+
   return "Replying to [message " + replyNum.toString() + "](" + url + ")" + "\n" + quoteBlock +
-      "\n\n" + reconstructMessage(msgArray);
+      "\n\n" + message;
 
 }
 
