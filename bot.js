@@ -29,9 +29,9 @@ client.on("message", (msg) => {
 });
 
 // Central functionality
-function submitAnon(msg) {
+async function submitAnon(msg) {
   var anonLogsChannel = database.getChannelDestination(
-    metadata.channels.ANONLOGS
+      metadata.channels.ANONLOGS
   );
   var destinationChannel = "";
 
@@ -45,12 +45,12 @@ function submitAnon(msg) {
       return;
     case "!send":
       destinationChannel = database.getChannelDestination(
-        metadata.channels.ANONCHANNEL
+          metadata.channels.ANONCHANNEL
       );
       break;
     case "!send-deep":
       destinationChannel = database.getChannelDestination(
-        metadata.channels.DEEPTALKS
+          metadata.channels.DEEPTALKS
       );
       break;
     default:
@@ -64,18 +64,38 @@ function submitAnon(msg) {
     return;
   }
   var messageToSend;
+  var messageToStore;
   switch (params[1]) {
     case "nsfw":
       if (params.length > 2) {
         messageToSend =
-          "||" + reconstructMessage(params.slice(2, params.length)) + "||";
+            "||" + reconstructMessage(params.slice(2, params.length)) + "||";
+        messageToStore = messageToSend;
       } else {
         //incase someone sends a msg saying nsfw only
         messageToSend = reconstructMessage(params.slice(1, params.length));
+        messageToStore = messageToSend;
       }
       break;
+
+    case "reply":
+
+      if (params.length > 3) {
+
+        replyNum = params[2];
+        messageToSend = formatReply(replyNum, params.slice(3, params.length));
+        messageToStore = reconstructMessage(params.slice(3, params.length));
+
+      } else {
+        //in case someone sends a msg saying reply followed by a number only
+        messageToSend = reconstructMessage(params.slice(1, params.length));
+        messageToStore = messageToSend;
+      }
+      break;
+
     default:
       messageToSend = reconstructMessage(params.slice(1, params.length));
+      messageToStore = messageToSend;
       break;
   }
   if (anonLogsChannel == "" || destinationChannel == "") {
@@ -89,19 +109,24 @@ function submitAnon(msg) {
     return;
   }
 
-  const msg_id = database.getAndIncrementMessageCounter();
+
+  const msg_id = database.addMessageAndGetNumber(messageToStore);
   const anon_id = encryptor.encrypt(msg.author.id);
 
   database.insertMsgMap(anon_id, msg_id);
 
   var msgEmbed = new discord.MessageEmbed()
-    .setDescription(messageToSend.trim())
-    .setColor(3447003)
-    .setTimestamp()
-    .setFooter("#" + msg_id.toString());
+      .setDescription(messageToSend.trim())
+      .setColor(3447003)
+      .setTimestamp()
+      .setFooter("#" + msg_id.toString());
 
-  destinationChannelObj = client.channels.cache.get(destinationChannel);
-  destinationChannelObj.send(msgEmbed);
+  var destinationChannelObj = client.channels.cache.get(destinationChannel);
+  let sent = await destinationChannelObj.send(msgEmbed);
+
+  const messageUrl = "https://discord.com/channels/" + sent.guild.id + "/" + sent.channel.id + "/" + sent.id;
+  database.updateMessageWithUrl(msg_id, messageUrl);
+
   msg.reply("Message sent to " + destinationChannelObj.name);
 
   msgEmbed.addFields({
@@ -109,6 +134,24 @@ function submitAnon(msg) {
     value: destinationChannelObj.name,
   });
   client.channels.cache.get(anonLogsChannel).send(msgEmbed);
+}
+
+function formatReply(replyNum, msgArray) {
+
+  var targetMessage = database.getMessageByNumber(replyNum);
+  var url = database.getMessageUrlByNumber(replyNum);
+
+  const maxChars = 130;
+  var quoteBlock;
+  if (targetMessage.length <= maxChars) {
+    quoteBlock = "> " + targetMessage;
+  } else {
+    quoteBlock = "> " + targetMessage.slice(0, maxChars + 1) + "...";
+  }
+
+  return "Replying to [message " + replyNum.toString() + "](" + url + ")" + "\n" + quoteBlock +
+      "\n\n" + reconstructMessage(msgArray);
+
 }
 
 function parseArguments(msg) {
