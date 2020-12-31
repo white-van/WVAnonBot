@@ -87,12 +87,25 @@ function getAndIncrementMessageCounter() {
 }
 
 function addMessageAndGetNumber(msg) {
-  var stmt = db.prepare("SELECT count FROM messageCounter");
-  var result = stmt.get();
-  const preUpdateMessageCount = result.count;
-  stmt = db.prepare("SELECT * FROM messages");
-  result = stmt.all();
-  const messageNumber = result.length + preUpdateMessageCount + 1;
+
+  stmt = db.prepare("SELECT * FROM messages WHERE number=(SELECT MAX(number) FROM messages)")
+  var result = stmt.get()
+
+  var messageNumber;
+  if (!result) {
+
+    stmt = db.prepare("SELECT count FROM messageCounter");
+    result = stmt.get();
+
+    if (!result) {
+      messageNumber = 0
+    } else {
+      messageNumber = result.count;
+    }
+
+  } else {
+    messageNumber = result.number + 1;
+  }
 
   stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?)");
   stmt.run(messageNumber, msg, "");
@@ -106,37 +119,40 @@ function updateMessageWithUrl(number, url) {
 }
 
 function getMessageByNumber(num) {
-  var stmt = db.prepare("SELECT count FROM messageCounter");
-  var result = stmt.get();
-  const preUpdateMessageCount = result.count;
-  stmt = db.prepare("SELECT * FROM messages");
-  result = stmt.all();
-  var postUpdateMessageCount = result.length;
 
-  if (num <= preUpdateMessageCount || num > preUpdateMessageCount + postUpdateMessageCount) {
+  if (!messageNumberIsRepliable(num)) {
     return "";
   }
 
-  var stmt = db.prepare("SELECT message_content FROM messages WHERE number = " + num.toString());
-  var result = stmt.get();
+  stmt = db.prepare("SELECT message_content FROM messages WHERE number = " + num.toString());
+  result = stmt.get();
   return result.message_content;
 }
 
 function getMessageUrlByNumber(num) {
-  var stmt = db.prepare("SELECT count FROM messageCounter");
-  var result = stmt.get();
-  const preUpdateMessageCount = result.count;
-  stmt = db.prepare("SELECT * FROM messages");
-  result = stmt.all();
-  var postUpdateMessageCount = result.length;
 
-  if (num <= preUpdateMessageCount || num > preUpdateMessageCount + postUpdateMessageCount) {
+  if (!messageNumberIsRepliable(num)) {
     return "";
   }
 
   stmt = db.prepare("SELECT message_url FROM messages WHERE number = " + num.toString());
   result = stmt.get();
   return result.message_url;
+}
+
+function messageNumberIsRepliable(num) {
+  var stmt = db.prepare("SELECT * FROM messages WHERE number=(SELECT MIN(number) from messages)");
+  var result = stmt.get();
+  if(!result) {
+    return "";
+  }
+  const firstRepliableMessageNumber = result.number;
+
+  stmt = db.prepare("SELECT * FROM messages WHERE number=(SELECT MAX(number) from messages)")
+  result = stmt.get();
+  const lastRepliableMessageNumber = result.number;
+
+  return num >= firstRepliableMessageNumber && num <= lastRepliableMessageNumber;
 }
 
 function getAnonIdFromMsgId(msgId) {
