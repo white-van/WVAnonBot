@@ -87,7 +87,7 @@ async function submitAnon(msg) {
       }
       break;
     case "reply":
-      if (params.length > 3) {
+      if (params.length > 3 && isNumeric(params[2])) {
         const replyNum = params[2];
         messageToSend = formatReply(replyNum, params.slice(3, params.length));
         if(messageToSend === -1) {
