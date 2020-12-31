@@ -107,8 +107,8 @@ function updateMessageWithUrl(number, url) {
 
 function getMessageByNumber(num) {
   var stmt = db.prepare("SELECT message_content FROM messages WHERE number = " + num.toString());
-  var row = stmt.get();
-  return row.message_content;
+  var result = stmt.get();
+  return result.message_content;
 }
 
 function getMessageUrlByNumber(num) {

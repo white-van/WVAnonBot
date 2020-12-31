@@ -67,9 +67,7 @@ async function submitAnon(msg) {
   var messageToStore;
   switch (params[1]) {
     case "nsfw":
-
       if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
-
         const replyNum = params[3];
         messageToSend = formatReply(replyNum, params.slice(4, params.length), true);
         if(messageToSend === -1) {
@@ -78,9 +76,7 @@ async function submitAnon(msg) {
         }
         messageToStore = "||" + reconstructMessage(params.slice(4, params.length)) + "||";
       }
-
       else if (params.length > 2) {
-
         messageToSend =
             "||" + reconstructMessage(params.slice(2, params.length)) + "||";
         messageToStore = messageToSend;
@@ -90,11 +86,8 @@ async function submitAnon(msg) {
         messageToStore = messageToSend;
       }
       break;
-
     case "reply":
-
       if (params.length > 3) {
-
         const replyNum = params[2];
         messageToSend = formatReply(replyNum, params.slice(3, params.length));
         if(messageToSend === -1) {
@@ -126,7 +119,6 @@ async function submitAnon(msg) {
 
   const msg_id = database.addMessageAndGetNumber(messageToStore);
   const anon_id = encryptor.encrypt(msg.author.id);
-
   database.insertMsgMap(anon_id, msg_id);
 
   var msgEmbed = new discord.MessageEmbed()
