@@ -106,6 +106,17 @@ function updateMessageWithUrl(number, url) {
 }
 
 function getMessageByNumber(num) {
+  var stmt = db.prepare("SELECT count FROM messageCounter");
+  var result = stmt.get();
+  const preUpdateMessageCount = result.count;
+  stmt = db.prepare("SELECT * FROM messages");
+  result = stmt.all();
+  var postUpdateMessageCount = result.length;
+
+  if (num <= preUpdateMessageCount || num > preUpdateMessageCount + postUpdateMessageCount) {
+    return "";
+  }
+
   var stmt = db.prepare("SELECT message_content FROM messages WHERE number = " + num.toString());
   var result = stmt.get();
   return result.message_content;
@@ -115,9 +126,14 @@ function getMessageUrlByNumber(num) {
   var stmt = db.prepare("SELECT count FROM messageCounter");
   var result = stmt.get();
   const preUpdateMessageCount = result.count;
-  if (num <= preUpdateMessageCount) {
+  stmt = db.prepare("SELECT * FROM messages");
+  result = stmt.all();
+  var postUpdateMessageCount = result.length;
+
+  if (num <= preUpdateMessageCount || num > preUpdateMessageCount + postUpdateMessageCount) {
     return "";
   }
+
   stmt = db.prepare("SELECT message_url FROM messages WHERE number = " + num.toString());
   result = stmt.get();
   return result.message_url;
