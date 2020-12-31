@@ -3,7 +3,7 @@ const database = require("./database.js");
 
 const algorithm = "aes-256-ctr";
 const secretKey = "aDZE1wauzAFgKABfGq1Hkgf12poVmkj6";
-var iv = null;
+let iv = null;
 
 const encrypt = (text) => {
   if (!iv) {

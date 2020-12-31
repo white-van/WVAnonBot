@@ -6,16 +6,16 @@ const encryptor = require("./encryptor.js");
 const moment = require("moment");
 
 function configureTimersAndCheckIfCanSend(msg) {
-  var encryptedUser = encryptor.encrypt(msg.author.id);
-  var record = database.getMessageBlocker(encryptedUser);
-  var now = moment().utc();
-  var error = {
+  const encryptedUser = encryptor.encrypt(msg.author.id);
+  const record = database.getMessageBlocker(encryptedUser);
+  const now = moment().utc();
+  const error = {
     errorCode: -1,
     suffix: "",
   };
 
   if (record) {
-    var dateOfUnblock = moment.utc(record.date, "DD MM YYYY HH:mm:ss");
+    const dateOfUnblock = moment.utc(record.date, "DD MM YYYY HH:mm:ss");
     switch (record.reason) {
       case metadata.blockReason.TEMPBAN:
         if (now.isBefore(dateOfUnblock)) {
@@ -46,7 +46,7 @@ function configureTimersAndCheckIfCanSend(msg) {
     }
   }
 
-  if (error.errorCode != -1) {
+  if (error.errorCode !== -1) {
     return error;
   }
 
@@ -54,14 +54,14 @@ function configureTimersAndCheckIfCanSend(msg) {
 }
 
 function addSlowmodeTimer(msg, encryptedUser) {
-  var slowmodeTimer = database.getConfigurationTimer(
+  const slowmodeTimer = database.getConfigurationTimer(
     metadata.configuration.SLOWMODE
   );
-  if (slowmodeTimer == 0) {
+  if (slowmodeTimer === 0) {
     return;
   }
 
-  var slowModeDate = moment().utc();
+  let slowModeDate = moment().utc();
   slowModeDate = moment(slowModeDate).add(slowmodeTimer, "s");
 
   database.setMessageBlocker(

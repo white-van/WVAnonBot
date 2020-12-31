@@ -17,11 +17,11 @@ client.on("message", (msg) => {
   if (msg.author.bot) {
     return;
   }
-  if (msg.channel.type == "dm") {
-    //if has_accepted
+  if (msg.channel.type === "dm") {
+    // if has_accepted
     submitAnon(msg);
   } else if (
-    msg.channel.type == "text" &&
+    msg.channel.type === "text" &&
     canConfigure(msg, metadata.permissions.CONFIGURE)
   ) {
     parseArguments(msg);
@@ -30,12 +30,12 @@ client.on("message", (msg) => {
 
 // Central functionality
 function submitAnon(msg) {
-  var anonLogsChannel = database.getChannelDestination(
+  const anonLogsChannel = database.getChannelDestination(
     metadata.channels.ANONLOGS
   );
-  var destinationChannel = "";
+  let destinationChannel = "";
 
-  var params = msg.content.split(" ");
+  const params = msg.content.split(" ");
   switch (params[0]) {
     case "!help":
       replyTorMessageWithStatus(msg, 1);
@@ -63,14 +63,14 @@ function submitAnon(msg) {
     replyTorMessageWithStatus(msg, 2009);
     return;
   }
-  var messageToSend;
+  let messageToSend;
   switch (params[1]) {
     case "nsfw":
       if (params.length > 2) {
         messageToSend =
           "||" + reconstructMessage(params.slice(2, params.length)) + "||";
       } else {
-        //incase someone sends a msg saying nsfw only
+        // incase someone sends a msg saying nsfw only
         messageToSend = reconstructMessage(params.slice(1, params.length));
       }
       break;
@@ -78,29 +78,29 @@ function submitAnon(msg) {
       messageToSend = reconstructMessage(params.slice(1, params.length));
       break;
   }
-  if (anonLogsChannel == "" || destinationChannel == "") {
+  if (anonLogsChannel === "" || destinationChannel === "") {
     msg.reply("The bot first needs to be configured!");
     return;
   }
 
-  var timerError = timerhandler.configureTimersAndCheckIfCanSend(msg);
+  const timerError = timerhandler.configureTimersAndCheckIfCanSend(msg);
   if (timerError) {
     replyTorMessageWithStatus(msg, timerError.errorCode, timerError.suffix);
     return;
   }
 
-  const msg_id = database.getAndIncrementMessageCounter();
-  const anon_id = encryptor.encrypt(msg.author.id);
+  const msgId = database.getAndIncrementMessageCounter();
+  const anonId = encryptor.encrypt(msg.author.id);
 
-  database.insertMsgMap(anon_id, msg_id);
+  database.insertMsgMap(anonId, msgId);
 
-  var msgEmbed = new discord.MessageEmbed()
+  const msgEmbed = new discord.MessageEmbed()
     .setDescription(messageToSend.trim())
     .setColor(3447003)
     .setTimestamp()
-    .setFooter("#" + msg_id.toString());
+    .setFooter("#" + msgId.toString());
 
-  destinationChannelObj = client.channels.cache.get(destinationChannel);
+  const destinationChannelObj = client.channels.cache.get(destinationChannel);
   destinationChannelObj.send(msgEmbed);
   msg.reply("Message sent to " + destinationChannelObj.name);
 
@@ -112,9 +112,9 @@ function submitAnon(msg) {
 }
 
 function parseArguments(msg) {
-  var params = msg.content.split(" ");
+  const params = msg.content.split(" ");
 
-  if (params[0] == "!anon") {
+  if (params[0] === "!anon") {
     switch (params[1]) {
       case "help":
         replyTorMessageWithStatus(msg, 0);
@@ -140,8 +140,8 @@ function parseArguments(msg) {
 }
 
 function handleSetCommand(params, msg) {
-  var channelId = params[3] ? params[3].replace(/\D/g, "") : "";
-  var validChannelId = msg.channel.guild.channels.cache.has(channelId);
+  const channelId = params[3] ? params[3].replace(/\D/g, "") : "";
+  const validChannelId = msg.channel.guild.channels.cache.has(channelId);
 
   switch (params[2]) {
     case "log":
@@ -178,7 +178,7 @@ function handleSetCommand(params, msg) {
 }
 
 function handleSlowmodeCommand(params, msg) {
-  var seconds = params[2];
+  const seconds = params[2];
   if (!isNumeric(seconds)) {
     replyTorMessageWithStatus(msg, 2005);
     return;
@@ -188,26 +188,28 @@ function handleSlowmodeCommand(params, msg) {
   database.setConfigurationTimer(metadata.configuration.SLOWMODE, seconds);
   replyTorMessageWithStatus(
     msg,
-    seconds != 0 ? 1003 : 1004,
-    seconds != 0 ? seconds + (seconds != 1 ? " seconds" : " second(why?)") : ""
+    seconds !== 0 ? 1003 : 1004,
+    seconds !== 0
+      ? seconds + (seconds !== 1 ? " seconds" : " second(why?)")
+      : ""
   );
 }
 
 function handleBanCommand(params, msg) {
-  var typeOfBan = params[1];
-  var msgId = params[2];
-  var arg3 = params[3]; // Seconds only in tempban, start of reason otherwise
+  const typeOfBan = params[1];
+  const msgId = params[2];
+  const arg3 = params[3]; // Seconds only in tempban, start of reason otherwise
 
-  var anonId = database.getAnonIdFromMsgId(msgId);
+  const anonId = database.getAnonIdFromMsgId(msgId);
 
-  var reason = "";
-  if (typeOfBan == "tempban") {
+  let reason = "";
+  if (typeOfBan === "tempban") {
     if (!anonId || !arg3 || !isNumeric(arg3) || params.length < 5) {
       replyTorMessageWithStatus(msg, 2006);
       return;
     }
     reason = reconstructMessage(params.slice(4, params.length));
-    var unbanTime = moment().utc();
+    let unbanTime = moment().utc();
     unbanTime = moment(unbanTime).add(arg3, "s");
 
     database.setMessageBlocker(
@@ -234,8 +236,8 @@ function handleBanCommand(params, msg) {
 }
 
 function handleUnbanCommand(params, msg) {
-  var msgId = params[2];
-  var anonId = database.getAnonIdFromMsgId(msgId);
+  const msgId = params[2];
+  const anonId = database.getAnonIdFromMsgId(msgId);
 
   if (!anonId || params.length < 3) {
     replyTorMessageWithStatus(msg, 2008);
@@ -251,12 +253,12 @@ function reconstructMessage(params) {
 }
 
 function replyTorMessageWithStatus(msg, status, suffix) {
-  var errorDesc = errors.getError(status);
+  const errorDesc = errors.getError(status);
   // Help message special case. Setting header
-  if (status == 0) {
+  if (status === 0) {
     errorDesc.setAuthor(client.user.username, client.user.avatarURL());
   }
-  if (msg.channel.type == "dm") {
+  if (msg.channel.type === "dm") {
     msg.reply(errors.getError(status, suffix));
   } else {
     msg.channel.messages.channel.send(errors.getError(status, suffix));
