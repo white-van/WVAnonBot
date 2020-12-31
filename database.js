@@ -86,11 +86,7 @@ function getAndIncrementMessageCounter() {
   return result.count;
 }
 
-//======================================================================================================================
-
-
 function addMessageAndGetNumber(msg) {
-
   var stmt = db.prepare("SELECT count FROM messageCounter");
   var result = stmt.get();
   const preUpdateMessageCount = result.count;
@@ -102,41 +98,30 @@ function addMessageAndGetNumber(msg) {
   stmt.run(messageNumber, msg, "");
 
   return messageNumber;
-
 }
 
 function updateMessageWithUrl(number, url) {
-
   var stmt = db.prepare("UPDATE messages SET message_url = ? WHERE number = ?");
   stmt.run(url, number);
-
 }
 
 function getMessageByNumber(num) {
-
   var stmt = db.prepare("SELECT message_content FROM messages WHERE number = " + num.toString());
   var row = stmt.get();
   return row.message_content;
-
 }
 
 function getMessageUrlByNumber(num) {
-
   var stmt = db.prepare("SELECT count FROM messageCounter");
   var result = stmt.get();
   const preUpdateMessageCount = result.count;
-
   if (num <= preUpdateMessageCount) {
     return "";
   }
-
   stmt = db.prepare("SELECT message_url FROM messages WHERE number = " + num.toString());
   result = stmt.get();
   return result.message_url;
-
 }
-
-//======================================================================================================================
 
 function getAnonIdFromMsgId(msgId) {
   var stmt = db.prepare("SELECT anon_id FROM msgMap WHERE msg_id = ?");

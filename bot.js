@@ -70,18 +70,13 @@ async function submitAnon(msg) {
 
       if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
 
-        console.log("ISNUMERIC: " + isNumeric(params[3]).toString() + "\n======================================");
         const replyNum = params[3];
-
         messageToSend = formatReply(replyNum, params.slice(4, params.length), true);
-
         if(messageToSend === -1) {
           replyTorMessageWithStatus(msg, 2011);
           return;
         }
-
         messageToStore = "||" + reconstructMessage(params.slice(4, params.length)) + "||";
-
       }
 
       else if (params.length > 2) {
@@ -102,21 +97,17 @@ async function submitAnon(msg) {
 
         const replyNum = params[2];
         messageToSend = formatReply(replyNum, params.slice(3, params.length));
-
         if(messageToSend === -1) {
           replyTorMessageWithStatus(msg, 2011);
           return;
         }
-
         messageToStore = reconstructMessage(params.slice(3, params.length));
-
-      } else { //TODO: Test this
+      } else {
         //in case someone sends a msg saying reply followed by a number only
         messageToSend = reconstructMessage(params.slice(1, params.length));
         messageToStore = messageToSend;
       }
       break;
-
     default:
       messageToSend = reconstructMessage(params.slice(1, params.length));
       messageToStore = messageToSend;
@@ -133,7 +124,6 @@ async function submitAnon(msg) {
     return;
   }
 
-
   const msg_id = database.addMessageAndGetNumber(messageToStore);
   const anon_id = encryptor.encrypt(msg.author.id);
 
@@ -147,7 +137,6 @@ async function submitAnon(msg) {
 
   var destinationChannelObj = client.channels.cache.get(destinationChannel);
   let sent = await destinationChannelObj.send(msgEmbed);
-
   const messageUrl = "https://discord.com/channels/" + sent.guild.id + "/" + sent.channel.id + "/" + sent.id;
   database.updateMessageWithUrl(msg_id, messageUrl);
 
@@ -161,9 +150,8 @@ async function submitAnon(msg) {
 }
 
 function formatReply(replyNum, msgArray, isNsfw) {
-
-  var targetMessage = database.getMessageByNumber(replyNum);
-  var url = database.getMessageUrlByNumber(replyNum);
+  const targetMessage = database.getMessageByNumber(replyNum);
+  const url = database.getMessageUrlByNumber(replyNum);
 
   if (url === "") {
     return -1;
@@ -186,7 +174,6 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
   return "Replying to [message " + replyNum.toString() + "](" + url + ")" + "\n" + quoteBlock +
       "\n\n" + message;
-
 }
 
 function parseArguments(msg) {
