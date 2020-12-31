@@ -40,6 +40,9 @@ const errorMap = {
         "!send [msg] -> Sends a message to the anonymous chat\n" +
         "!send/send-deep nsfw [msg] -> Sends a message wrapped in spoiler tag to respective anon/deep talks channels\n" +
         "!send-deep [msg] -> Sends a message to the deep-talks channel\n" +
+        "!send/send-deep reply [number] [msg] -> Replies to the message with message number [number]\n" +
+        "!send/send-deep nsfw reply [number] [msg] -> Replies, with spoiler tags, to the message with message number " +
+            "[number]\n" +
         "!rules -> View the rules\n",
     })
     .setTimestamp(),
