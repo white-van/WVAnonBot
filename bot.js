@@ -29,7 +29,7 @@ client.on("message", (msg) => {
 });
 
 // Central functionality
-function submitAnon(msg) {
+async function submitAnon(msg) {
   const anonLogsChannel = database.getChannelDestination(
     metadata.channels.ANONLOGS
   );
@@ -63,19 +63,55 @@ function submitAnon(msg) {
     replyTorMessageWithStatus(msg, 2009);
     return;
   }
+  let messageToReplyTo = false;
   let messageToSend;
+  let messageToStore;
   switch (params[1]) {
     case "nsfw":
-      if (params.length > 2) {
+      if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
+        messageToReplyTo = params[3];
+        messageToSend = formatReply(
+          messageToReplyTo,
+          params.slice(4, params.length),
+          true
+        );
+        if (messageToSend === -1) {
+          replyTorMessageWithStatus(msg, 2011);
+          return;
+        }
+        messageToStore =
+          "||" + reconstructMessage(params.slice(4, params.length)) + "||";
+      } else if (params.length > 2) {
         messageToSend =
           "||" + reconstructMessage(params.slice(2, params.length)) + "||";
+        messageToStore = messageToSend;
       } else {
         // incase someone sends a msg saying nsfw only
         messageToSend = reconstructMessage(params.slice(1, params.length));
+        messageToStore = messageToSend;
+      }
+      break;
+    case "reply":
+      if (params.length > 3 && isNumeric(params[2])) {
+        messageToReplyTo = params[2];
+        messageToSend = formatReply(
+          messageToReplyTo,
+          params.slice(3, params.length)
+        );
+        if (messageToSend === -1) {
+          replyTorMessageWithStatus(msg, 2011);
+          return;
+        }
+        messageToStore = reconstructMessage(params.slice(3, params.length));
+      } else {
+        // in case someone sends a msg saying reply followed by a number only
+        messageToSend = reconstructMessage(params.slice(1, params.length));
+        messageToStore = messageToSend;
       }
       break;
     default:
       messageToSend = reconstructMessage(params.slice(1, params.length));
+      messageToStore = messageToSend;
       break;
   }
   if (anonLogsChannel === "" || destinationChannel === "") {
@@ -89,9 +125,8 @@ function submitAnon(msg) {
     return;
   }
 
-  const msgId = database.getAndIncrementMessageCounter();
+  const msgId = database.addMessageAndGetNumber(messageToStore);
   const anonId = encryptor.encrypt(msg.author.id);
-
   database.insertMsgMap(anonId, msgId);
 
   const msgEmbed = new discord.MessageEmbed()
@@ -101,14 +136,68 @@ function submitAnon(msg) {
     .setFooter("#" + msgId.toString());
 
   const destinationChannelObj = client.channels.cache.get(destinationChannel);
-  destinationChannelObj.send(msgEmbed);
-  msg.reply("Message sent to " + destinationChannelObj.name);
+  const sent = await destinationChannelObj.send(msgEmbed);
+  const messageUrl =
+    "https://discord.com/channels/" +
+    sent.guild.id +
+    "/" +
+    sent.channel.id +
+    "/" +
+    sent.id;
+  database.updateMessageWithUrl(msgId, messageUrl);
+
+  if (messageToReplyTo === false) {
+    msg.reply("Message sent to " + destinationChannelObj.name);
+  } else {
+    msg.reply(
+      "Reply to message " +
+        messageToReplyTo +
+        " sent to " +
+        destinationChannelObj.name
+    );
+  }
 
   msgEmbed.addFields({
     name: "Target channel",
     value: destinationChannelObj.name,
   });
   client.channels.cache.get(anonLogsChannel).send(msgEmbed);
+}
+
+function formatReply(replyNum, msgArray, isNsfw) {
+  const targetMessage = database.getMessageByNumber(replyNum);
+  const url = database.getMessageUrlByNumber(replyNum);
+
+  if (url === "") {
+    return -1;
+  }
+
+  const maxChars = 130;
+  let quoteBlock;
+  if (targetMessage.length <= maxChars) {
+    quoteBlock = "> " + targetMessage;
+  } else {
+    quoteBlock = "> " + targetMessage.slice(0, maxChars + 1) + "...";
+  }
+
+  let message;
+  if (isNsfw) {
+    message = "||" + reconstructMessage(msgArray) + "||";
+  } else {
+    message = reconstructMessage(msgArray);
+  }
+
+  return (
+    "Replying to [message " +
+    replyNum.toString() +
+    "](" +
+    url +
+    ")" +
+    "\n" +
+    quoteBlock +
+    "\n\n" +
+    message
+  );
 }
 
 function parseArguments(msg) {

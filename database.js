@@ -78,17 +78,91 @@ function deleteAllSlowdowns() {
   stmt.run(metadata.blockReason.SLOWMODE);
 }
 
-function getAndIncrementMessageCounter() {
-  let stmt = db.prepare("SELECT count FROM messageCounter");
-  const result = stmt.get();
+// The getAndIncrementMessageCounter function was deleted, and was removed from module.exports
+
+function addMessageAndGetNumber(msg) {
+  let stmt = db.prepare(
+    "SELECT * FROM messages WHERE number=(SELECT MAX(number) FROM messages)"
+  );
+  let result = stmt.get();
+
+  let messageNumber;
   if (!result) {
-    stmt = db.prepare("INSERT INTO messageCounter VALUES (1)");
-    stmt.run();
-    return 0;
+    stmt = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='messageCounter'"
+    );
+    result = stmt.get();
+    if (typeof result === "undefined") {
+      messageNumber = 0;
+    } else {
+      stmt = db.prepare("SELECT count FROM messageCounter");
+      result = stmt.get();
+      if (!result) {
+        messageNumber = 0;
+      } else {
+        messageNumber = result.count;
+      }
+    }
+  } else {
+    messageNumber = result.number + 1;
   }
-  stmt = db.prepare("UPDATE messageCounter SET count = count + 1");
-  stmt.run();
-  return result.count;
+
+  stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?)");
+  stmt.run(messageNumber, msg, "");
+
+  return messageNumber;
+}
+
+function updateMessageWithUrl(number, url) {
+  const stmt = db.prepare(
+    "UPDATE messages SET message_url = ? WHERE number = ?"
+  );
+  stmt.run(url, number);
+}
+
+function getMessageByNumber(num) {
+  if (!messageNumberIsRepliable(num)) {
+    return "";
+  }
+
+  const stmt = db.prepare(
+    "SELECT message_content FROM messages WHERE number = " + num.toString()
+  );
+  const result = stmt.get();
+  return result.message_content;
+}
+
+function getMessageUrlByNumber(num) {
+  if (!messageNumberIsRepliable(num)) {
+    return "";
+  }
+
+  const stmt = db.prepare(
+    "SELECT message_url FROM messages WHERE number = " + num.toString()
+  );
+  const result = stmt.get();
+  return result.message_url;
+}
+
+function messageNumberIsRepliable(num) {
+  let stmt = db.prepare(
+    "SELECT * FROM messages WHERE number=(SELECT MIN(number) from messages)"
+  );
+  let result = stmt.get();
+  if (!result) {
+    return "";
+  }
+  const firstRepliableMessageNumber = result.number;
+
+  stmt = db.prepare(
+    "SELECT * FROM messages WHERE number=(SELECT MAX(number) from messages)"
+  );
+  result = stmt.get();
+  const lastRepliableMessageNumber = result.number;
+
+  return (
+    num >= firstRepliableMessageNumber && num <= lastRepliableMessageNumber
+  );
 }
 
 function getAnonIdFromMsgId(msgId) {
@@ -124,7 +198,10 @@ module.exports = {
   getMessageBlocker,
   deleteMessageBlocker,
   deleteAllSlowdowns,
-  getAndIncrementMessageCounter,
+  addMessageAndGetNumber,
+  getMessageByNumber,
+  getMessageUrlByNumber,
+  updateMessageWithUrl,
   getAnonIdFromMsgId,
   insertMsgMap,
 };
@@ -167,9 +244,12 @@ function initializeTables() {
   );
   stmt.run();
 
-  // Message counter
+  // The code that created the messageCounter table if it didn't already exist was deleted
+
+  // Message number, content, and url
   stmt = db.prepare(
-    "CREATE TABLE IF NOT EXISTS messageCounter (count INTEGER)"
+    "CREATE TABLE IF NOT EXISTS messages (number INTEGER PRIMARY KEY, " +
+      "message_content TEXT NOT NULL, message_url TEXT)"
   );
   stmt.run();
 }
