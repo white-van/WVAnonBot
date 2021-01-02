@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "lockfileVersion": 1,
   "requires": true,
+  "scripts": {
+    "prettier": "npx prettier --write .",
+    "lint": "eslint . --ext .js"
+  },
   "dependencies": {
     "@dabh/diagnostics": {
       "integrity": "sha512-+A1YivoVDNNVCdfozHSR8v/jyuuLTMXwjWuxPFlFlUapXoGc+Gj9mDlTDDfrwl7rXCl2tNZ0kE8sIBO6YOn96Q==",
@@ -364,5 +368,13 @@
       "resolved": "https://registry.npmjs.org/ws/-/ws-1.1.5.tgz",
       "version": "1.1.5"
     }
+  },
+  "devDependencies": {
+    "eslint": "^7.16.0",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1"
   }
 }

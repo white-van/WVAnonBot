@@ -1,0 +1,25 @@
+name: nodeci-lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  reactci:
+    name: nodeci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Node 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run linter
+        run: npm run lint
