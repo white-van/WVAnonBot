@@ -139,37 +139,37 @@ function parseArguments(msg) {
   }
 }
 
-function handleSetCommand(params, msg) {
-  var channelId = params[3] ? params[3].replace(/\D/g, "") : "";
+function setChannel(channelId, channel, msg, offset) {
   var validChannelId = msg.channel.guild.channels.cache.has(channelId);
+  if (validChannelId) {
+    database.setChannelDestinations(channel, channelId);
+    replyTorMessageWithStatus(msg, 1000 + offset);
+  } else {
+    replyTorMessageWithStatus(msg, 2002 + offset);
+  }
+}
 
+function handleSetCommand(params, msg) {
+  if (params.length === 5) {
+    var anonChannelId = params[2] ? params[2].replace(/\D/g, "") : "";
+    var deepChannelId = params[3] ? params[3].replace(/\D/g, "") : "";
+    var logsChannelId = params[4] ? params[4].replace(/\D/g, "") : "";
+    setChannel(anonChannelId, metadata.channels.ANONCHANNEL, msg, 1);
+    setChannel(deepChannelId, metadata.channels.DEEPTALKS, msg, 2);
+    setChannel(logsChannelId, metadata.channels.ANONLOGS, msg, 0);
+    return;
+  }
+
+  var channelId = params[3] ? params[3].replace(/\D/g, "") : "";
   switch (params[2]) {
     case "log":
-      if (validChannelId) {
-        database.setChannelDestinations(metadata.channels.ANONLOGS, channelId);
-        replyTorMessageWithStatus(msg, 1000);
-      } else {
-        replyTorMessageWithStatus(msg, 2002);
-      }
+      setChannel(channelId, metadata.channels.ANONLOGS, 0);
       break;
     case "anon":
-      if (validChannelId) {
-        database.setChannelDestinations(
-          metadata.channels.ANONCHANNEL,
-          channelId
-        );
-        replyTorMessageWithStatus(msg, 1001);
-      } else {
-        replyTorMessageWithStatus(msg, 2003);
-      }
+      setChannel(channelId, metadata.channels.ANONCHANNEL, 1);
       break;
     case "deeptalks":
-      if (validChannelId) {
-        database.setChannelDestinations(metadata.channels.DEEPTALKS, channelId);
-        replyTorMessageWithStatus(msg, 1002);
-      } else {
-        replyTorMessageWithStatus(msg, 2004);
-      }
+      setChannel(channelId, metadata.channels.DEEPTALKS, 2);
       break;
     default:
       replyTorMessageWithStatus(msg, 2001);
