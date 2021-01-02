@@ -63,13 +63,14 @@ async function submitAnon(msg) {
     replyTorMessageWithStatus(msg, 2009);
     return;
   }
+  var messageToReplyTo = false;
   var messageToSend;
   var messageToStore;
   switch (params[1]) {
     case "nsfw":
       if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
-        const replyNum = params[3];
-        messageToSend = formatReply(replyNum, params.slice(4, params.length), true);
+        messageToReplyTo = params[3];
+        messageToSend = formatReply(messageToReplyTo, params.slice(4, params.length), true);
         if(messageToSend === -1) {
           replyTorMessageWithStatus(msg, 2011);
           return;
@@ -88,8 +89,8 @@ async function submitAnon(msg) {
       break;
     case "reply":
       if (params.length > 3 && isNumeric(params[2])) {
-        const replyNum = params[2];
-        messageToSend = formatReply(replyNum, params.slice(3, params.length));
+        messageToReplyTo = params[2];
+        messageToSend = formatReply(messageToReplyTo, params.slice(3, params.length));
         if(messageToSend === -1) {
           replyTorMessageWithStatus(msg, 2011);
           return;
@@ -132,7 +133,11 @@ async function submitAnon(msg) {
   const messageUrl = "https://discord.com/channels/" + sent.guild.id + "/" + sent.channel.id + "/" + sent.id;
   database.updateMessageWithUrl(msg_id, messageUrl);
 
-  msg.reply("Message sent to " + destinationChannelObj.name);
+  if (messageToReplyTo === false) {
+    msg.reply("Message sent to " + destinationChannelObj.name);
+  } else {
+    msg.reply("Reply to message " + messageToReplyTo + " sent to " + destinationChannelObj.name)
+  }
 
   msgEmbed.addFields({
     name: "Target channel",
