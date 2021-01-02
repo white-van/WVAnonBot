@@ -32,25 +32,23 @@ const errorMap = {
     .setTimestamp(),
   // Help message for user
   1: new discord.MessageEmbed()
-      .setDescription("User commands")
+      .setTitle("User Commands")
       .setColor(3447003)
       .addFields({
-        name: "Sending regular messages",
-        value:
-            "• !send [msg] -> Sends a message to the anonymous chat\n" +
-            "• !send-deep [msg] -> Sends a message to the deep-talks channel\n",
+        name: "Informational commands",
+        value: "Please follow the rules when using WVAnon\n" +
+               "• !rules -> View the rules",
       })
       .addFields({
-        name: "Sending formatted messages",
+        name: "Messaging commands",
         value:
-            "• !send/send-deep nsfw [msg] -> Sends a message wrapped in spoiler tag to respective anon/deep talks channels\n" +
-            "• !send/send-deep reply [number] [msg] -> Replies to the message with message number [number]\n" +
-            "• !send/send-deep nsfw reply [number] [msg] -> Replies, with spoiler tags, to the message with message number " +
-              "[number]\n",
-      })
-      .addFields({
-        name: "Other commands",
-        value: "• !rules -> View the rules\n",
+            "Arguments wrapped in [square brackets] are required.\n" +
+            "The {nsfw} argument is optional. If \"nsfw\" is included, the message will be wrapped in spoiler " +
+            "tags.\n\n" +
+
+            "• !send {nsfw} [msg] -> Sends a message to the anonymous chat\n" +
+            "• !send-deep {nsfw} [msg] -> Sends a message to the deep-talks channel\n" +
+            "• !send/send-deep {nsfw} reply [number] [msg] -> Replies to the message with message number [number]\n\n",
       })
       .setTimestamp(),
   // Rules for user
