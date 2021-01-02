@@ -73,18 +73,7 @@ function deleteAllSlowdowns() {
   stmt.run(metadata.blockReason.SLOWMODE);
 }
 
-function getAndIncrementMessageCounter() {
-  var stmt = db.prepare("SELECT count FROM messageCounter");
-  var result = stmt.get();
-  if (!result) {
-    stmt = db.prepare("INSERT INTO messageCounter VALUES (1)");
-    stmt.run();
-    return 0;
-  }
-  stmt = db.prepare("UPDATE messageCounter SET count = count + 1");
-  stmt.run();
-  return result.count;
-}
+//The getAndIncrementMessageCounter function was deleted, and was removed from module.exports
 
 function addMessageAndGetNumber(msg) {
 
@@ -93,16 +82,19 @@ function addMessageAndGetNumber(msg) {
 
   var messageNumber;
   if (!result) {
-
-    stmt = db.prepare("SELECT count FROM messageCounter");
+    stmt = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='messageCounter'");
     result = stmt.get();
-
-    if (!result) {
-      messageNumber = 0
+    if (typeof result === "undefined") {
+      messageNumber = 0;
     } else {
-      messageNumber = result.count;
+      stmt = db.prepare("SELECT count FROM messageCounter");
+      result = stmt.get();
+      if (!result) {
+        messageNumber = 0
+      } else {
+        messageNumber = result.count;
+      }
     }
-
   } else {
     messageNumber = result.number + 1;
   }
@@ -188,7 +180,6 @@ module.exports = {
   getMessageBlocker,
   deleteMessageBlocker,
   deleteAllSlowdowns,
-  getAndIncrementMessageCounter,
   addMessageAndGetNumber,
   getMessageByNumber,
   getMessageUrlByNumber,
@@ -235,11 +226,7 @@ function initializeTables() {
   );
   stmt.run();
 
-  // Message counter
-  stmt = db.prepare(
-      "CREATE TABLE IF NOT EXISTS messageCounter (count INTEGER)"
-  );
-  stmt.run();
+  // The code that created the messageCounter table if it didn't already exist was deleted
 
   // Message number, content, and url
   stmt = db.prepare(
