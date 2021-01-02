@@ -21,17 +21,17 @@ client.on("message", (msg) => {
     //if has_accepted
     submitAnon(msg);
   } else if (
-    msg.channel.type == "text" &&
-    canConfigure(msg, metadata.permissions.CONFIGURE)
+      msg.channel.type == "text" &&
+      canConfigure(msg, metadata.permissions.CONFIGURE)
   ) {
     parseArguments(msg);
   }
 });
 
 // Central functionality
-function submitAnon(msg) {
+async function submitAnon(msg) {
   var anonLogsChannel = database.getChannelDestination(
-    metadata.channels.ANONLOGS
+      metadata.channels.ANONLOGS
   );
   var destinationChannel = "";
 
@@ -45,12 +45,12 @@ function submitAnon(msg) {
       return;
     case "!send":
       destinationChannel = database.getChannelDestination(
-        metadata.channels.ANONCHANNEL
+          metadata.channels.ANONCHANNEL
       );
       break;
     case "!send-deep":
       destinationChannel = database.getChannelDestination(
-        metadata.channels.DEEPTALKS
+          metadata.channels.DEEPTALKS
       );
       break;
     default:
@@ -63,19 +63,48 @@ function submitAnon(msg) {
     replyTorMessageWithStatus(msg, 2009);
     return;
   }
+  var messageToReplyTo = false;
   var messageToSend;
+  var messageToStore;
   switch (params[1]) {
     case "nsfw":
-      if (params.length > 2) {
+      if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
+        messageToReplyTo = params[3];
+        messageToSend = formatReply(messageToReplyTo, params.slice(4, params.length), true);
+        if(messageToSend === -1) {
+          replyTorMessageWithStatus(msg, 2011);
+          return;
+        }
+        messageToStore = "||" + reconstructMessage(params.slice(4, params.length)) + "||";
+      }
+      else if (params.length > 2) {
         messageToSend =
-          "||" + reconstructMessage(params.slice(2, params.length)) + "||";
+            "||" + reconstructMessage(params.slice(2, params.length)) + "||";
+        messageToStore = messageToSend;
       } else {
         //incase someone sends a msg saying nsfw only
         messageToSend = reconstructMessage(params.slice(1, params.length));
+        messageToStore = messageToSend;
+      }
+      break;
+    case "reply":
+      if (params.length > 3 && isNumeric(params[2])) {
+        messageToReplyTo = params[2];
+        messageToSend = formatReply(messageToReplyTo, params.slice(3, params.length));
+        if(messageToSend === -1) {
+          replyTorMessageWithStatus(msg, 2011);
+          return;
+        }
+        messageToStore = reconstructMessage(params.slice(3, params.length));
+      } else {
+        //in case someone sends a msg saying reply followed by a number only
+        messageToSend = reconstructMessage(params.slice(1, params.length));
+        messageToStore = messageToSend;
       }
       break;
     default:
       messageToSend = reconstructMessage(params.slice(1, params.length));
+      messageToStore = messageToSend;
       break;
   }
   if (anonLogsChannel == "" || destinationChannel == "") {
@@ -89,26 +118,59 @@ function submitAnon(msg) {
     return;
   }
 
-  const msg_id = database.getAndIncrementMessageCounter();
+  const msg_id = database.addMessageAndGetNumber(messageToStore);
   const anon_id = encryptor.encrypt(msg.author.id);
-
   database.insertMsgMap(anon_id, msg_id);
 
   var msgEmbed = new discord.MessageEmbed()
-    .setDescription(messageToSend.trim())
-    .setColor(3447003)
-    .setTimestamp()
-    .setFooter("#" + msg_id.toString());
+      .setDescription(messageToSend.trim())
+      .setColor(3447003)
+      .setTimestamp()
+      .setFooter("#" + msg_id.toString());
 
-  destinationChannelObj = client.channels.cache.get(destinationChannel);
-  destinationChannelObj.send(msgEmbed);
-  msg.reply("Message sent to " + destinationChannelObj.name);
+  var destinationChannelObj = client.channels.cache.get(destinationChannel);
+  let sent = await destinationChannelObj.send(msgEmbed);
+  const messageUrl = "https://discord.com/channels/" + sent.guild.id + "/" + sent.channel.id + "/" + sent.id;
+  database.updateMessageWithUrl(msg_id, messageUrl);
+
+  if (messageToReplyTo === false) {
+    msg.reply("Message sent to " + destinationChannelObj.name);
+  } else {
+    msg.reply("Reply to message " + messageToReplyTo + " sent to " + destinationChannelObj.name)
+  }
 
   msgEmbed.addFields({
     name: "Target channel",
     value: destinationChannelObj.name,
   });
   client.channels.cache.get(anonLogsChannel).send(msgEmbed);
+}
+
+function formatReply(replyNum, msgArray, isNsfw) {
+  const targetMessage = database.getMessageByNumber(replyNum);
+  const url = database.getMessageUrlByNumber(replyNum);
+
+  if (url === "") {
+    return -1;
+  }
+
+  const maxChars = 130;
+  var quoteBlock;
+  if (targetMessage.length <= maxChars) {
+    quoteBlock = "> " + targetMessage;
+  } else {
+    quoteBlock = "> " + targetMessage.slice(0, maxChars + 1) + "...";
+  }
+
+  var message;
+  if(isNsfw) {
+    message = "||" + reconstructMessage(msgArray) + "||";
+  } else {
+    message = reconstructMessage(msgArray);
+  }
+
+  return "Replying to [message " + replyNum.toString() + "](" + url + ")" + "\n" + quoteBlock +
+      "\n\n" + message;
 }
 
 function parseArguments(msg) {
@@ -155,8 +217,8 @@ function handleSetCommand(params, msg) {
     case "anon":
       if (validChannelId) {
         database.setChannelDestinations(
-          metadata.channels.ANONCHANNEL,
-          channelId
+            metadata.channels.ANONCHANNEL,
+            channelId
         );
         replyTorMessageWithStatus(msg, 1001);
       } else {
@@ -187,9 +249,9 @@ function handleSlowmodeCommand(params, msg) {
   database.deleteAllSlowdowns();
   database.setConfigurationTimer(metadata.configuration.SLOWMODE, seconds);
   replyTorMessageWithStatus(
-    msg,
-    seconds != 0 ? 1003 : 1004,
-    seconds != 0 ? seconds + (seconds != 1 ? " seconds" : " second(why?)") : ""
+      msg,
+      seconds != 0 ? 1003 : 1004,
+      seconds != 0 ? seconds + (seconds != 1 ? " seconds" : " second(why?)") : ""
   );
 }
 
@@ -211,15 +273,15 @@ function handleBanCommand(params, msg) {
     unbanTime = moment(unbanTime).add(arg3, "s");
 
     database.setMessageBlocker(
-      anonId,
-      metadata.blockReason.TEMPBAN,
-      reason,
-      unbanTime.format("DD MM YYYY HH:mm:ss")
+        anonId,
+        metadata.blockReason.TEMPBAN,
+        reason,
+        unbanTime.format("DD MM YYYY HH:mm:ss")
     );
     replyTorMessageWithStatus(
-      msg,
-      1005,
-      reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
+        msg,
+        1005,
+        reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
     );
     return;
   }
@@ -265,7 +327,7 @@ function replyTorMessageWithStatus(msg, status, suffix) {
 
 function canConfigure(msg, allowedRoles) {
   return msg.member.roles.cache.find((role) =>
-    allowedRoles.includes(role.name)
+      allowedRoles.includes(role.name)
   );
 }
 
@@ -275,3 +337,4 @@ function isNumeric(value) {
 }
 
 client.login(auth.token);
+
