@@ -142,7 +142,6 @@ async function submitAnon(msg) {
 }
 
 function formatReply(replyNum, msgArray, isNsfw) {
-
   const targetMessage = database.getMessageByNumber(replyNum);
   const url = database.getMessageUrlByNumber(replyNum);
 
@@ -167,7 +166,6 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
   return "Replying to [message " + replyNum.toString() + "](" + url + ")" + "\n" + quoteBlock +
       "\n\n" + message;
-
 }
 
 function parseArguments(msg) {
