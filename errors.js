@@ -13,7 +13,8 @@ const errorMap = {
         value:
           "!anon set log #channel -> Sets the logger channel for the bot to dump submitted messages with anon IDs\n" +
           "!anon set anon #channel -> Sets the anon channel for the bot to write to\n" +
-          "!anon set deeptalks #channel -> Sets the deep talk channel for the bot to write to",
+          "!anon set deeptalks #channel -> Sets the deep talk channel for the bot to write to\n" +
+          "!anon set #anon-msgs #deep-talks #anon-logs -> Sets all three channels at once",
       },
       {
         name: "Timers",
