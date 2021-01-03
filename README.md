@@ -50,7 +50,8 @@ Requires: <a href="https://nodejs.org/en/">Node.js</a>
 2. `git checkout -b {your branch name here}`
 3. Write your code
 4. Create a pull request from your fork into main
-5. Squash & merge once approved!
+5. Run `npm run prettier` and `npm run lint`, fix all style checks
+6. Squash & merge once approved!
 
 ## ✨ Authors
 
