@@ -13,7 +13,8 @@ const errorMap = {
         value:
           "!anon set log #channel -> Sets the logger channel for the bot to dump submitted messages with anon IDs\n" +
           "!anon set anon #channel -> Sets the anon channel for the bot to write to\n" +
-          "!anon set deeptalks #channel -> Sets the deep talk channel for the bot to write to",
+          "!anon set deeptalks #channel -> Sets the deep talk channel for the bot to write to\n" +
+          "!anon set #anon-msgs #deep-talks #anon-logs -> Sets all three channels at once",
       },
       {
         name: "Timers",
@@ -32,15 +33,23 @@ const errorMap = {
     .setTimestamp(),
   // Help message for user
   1: new discord.MessageEmbed()
-    .setDescription("User commands")
+    .setTitle("User Commands")
     .setColor(3447003)
     .addFields({
-      name: "Sending messages",
+      name: "Informational commands",
       value:
-        "!send [msg] -> Sends a message to the anonymous chat\n" +
-        "!send/send-deep nsfw [msg] -> Sends a message wrapped in spoiler tag to respective anon/deep talks channels\n" +
-        "!send-deep [msg] -> Sends a message to the deep-talks channel\n" +
-        "!rules -> View the rules\n",
+        "Please follow the rules when using WVAnon\n" +
+        "• !rules -> View the rules",
+    })
+    .addFields({
+      name: "Messaging commands",
+      value:
+        "Arguments wrapped in [square brackets] are required.\n" +
+        'The {nsfw} argument is optional. If "nsfw" is included, the message will be wrapped in spoiler ' +
+        "tags.\n\n" +
+        "• !send {nsfw} [msg] -> Sends a message to the anonymous chat\n" +
+        "• !send-deep {nsfw} [msg] -> Sends a message to the deep-talks channel\n" +
+        "• !send/send-deep {nsfw} reply [number] [msg] -> Replies to the message with message number [number]\n\n",
     })
     .setTimestamp(),
   // Rules for user
@@ -82,6 +91,9 @@ const errorMap = {
   2008: "Improper unban command provided. Follow the format of !anon msgId user",
   2009: "Command unrecognized. Type in !help to see everything available to you",
   2010: "Improper msgId value provided. Please try again.",
+  2011:
+    "Number of the message to reply to is either invalid or belongs to a message that was sent before the " +
+    "reply-feature update. Only messages that were sent after the reply-feature update can be replied to.",
   // Message blocks
   3000: "Slowmode is active. Try sending in ",
   3001: "You've send too many messages within a short timeframe. Try again in ",
