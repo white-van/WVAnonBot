@@ -252,13 +252,13 @@ function handleSetCommand(params, msg) {
   const channelId = params[3] ? params[3].replace(/\D/g, "") : "";
   switch (params[2]) {
     case "log":
-      setChannel(channelId, metadata.channels.ANONLOGS, 0);
+      setChannel(channelId, metadata.channels.ANONLOGS, msg, 0);
       break;
     case "anon":
-      setChannel(channelId, metadata.channels.ANONCHANNEL, 1);
+      setChannel(channelId, metadata.channels.ANONCHANNEL, msg, 1);
       break;
     case "deeptalks":
-      setChannel(channelId, metadata.channels.DEEPTALKS, 2);
+      setChannel(channelId, metadata.channels.DEEPTALKS, msg, 2);
       break;
     default:
       replyTorMessageWithStatus(msg, 2001);
