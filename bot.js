@@ -200,8 +200,8 @@ function formatReply(replyNum, msgArray, isNsfw) {
   } else {
 
     let addEllipses = true;
-    let quotedMessage = targetMessage.slice(0, maxChars);
-    let cutoffMessage = targetMessage.slice(maxChars);
+    const quotedMessage = targetMessage.slice(0, maxChars);
+    const cutoffMessage = targetMessage.slice(maxChars);
     let blockQuoteMessage = quotedMessage;
     let preCutoffSpoilerIndex = -1;
     let preCutoffCodeIndex = -1;
@@ -211,7 +211,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
     let spoilerRegex = concatRegex(baseSpoilerRegex, /\|\|(?:(?!(\|\|)).)+$/);
     if (spoilerRegex.test(quotedMessage) && cutoffMessage.indexOf("||") !== -1) {
-      let reverseQuotedMessage = quotedMessage.split("").reverse().join("");
+      const reverseQuotedMessage = quotedMessage.split("").reverse().join("");
       preCutoffSpoilerIndex = quotedMessage.length - 1 - (reverseQuotedMessage.indexOf("||") + 1);
     }
 
@@ -234,7 +234,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
     // Checking for code blocks
     const baseCodeBlockRegex = /^(?:(?!(```)).)*((```(?:(?!(```)).)+[^`]```)|(```.```))*/;
 
-    let codeBlockRegex = concatRegex(baseCodeBlockRegex, /```(?:(?!(```)).)*/)
+    const codeBlockRegex = concatRegex(baseCodeBlockRegex, /```(?:(?!(```)).)*/)
     if (codeBlockRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("```") !== -1 && (!cutoffMessage.startsWith("'''")
         || cutoffMessage.startsWith("````"))) {
       blockQuoteMessage += "...```";
@@ -246,7 +246,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
     let codeRegex = concatRegex(baseCodeRegex, /`[^`]+$/);
     if (codeRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("`") !== -1) {
-      let reverseBlockQuoteMessage = blockQuoteMessage.split("").reverse().join("");
+      const reverseBlockQuoteMessage = blockQuoteMessage.split("").reverse().join("");
       preCutoffCodeIndex = blockQuoteMessage.length - 1 - (reverseBlockQuoteMessage.indexOf("`"));
     } else {
       codeRegex = concatRegex(baseCodeRegex, /`$/);
