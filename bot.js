@@ -165,7 +165,7 @@ async function submitAnon(msg) {
 }
 
 function formatReply(replyNum, msgArray, isNsfw) {
-  var targetMessage = database.getMessageByNumber(replyNum);
+  let targetMessage = database.getMessageByNumber(replyNum);
   const url = database.getMessageUrlByNumber(replyNum);
 
   if (url === "") {
@@ -175,14 +175,14 @@ function formatReply(replyNum, msgArray, isNsfw) {
   const maxChars = 130;
   const maxLines = 3;
 
-  var newlineInsertSequence = "> ";
+  let newlineInsertSequence = "> ";
   if (targetMessage.startsWith(">>> ")) {
     newlineInsertSequence = "> > ";
   }
 
-  var totalLines = 1;
-  var index = 0;
-  var nextNewlineIndex = targetMessage.indexOf('\n');
+  let totalLines = 1;
+  let index = 0;
+  let nextNewlineIndex = targetMessage.indexOf('\n');
   while (nextNewlineIndex !== -1 && totalLines <= maxLines) {
     targetMessage = targetMessage.slice(0, index + nextNewlineIndex + 1) +
         newlineInsertSequence +
@@ -199,19 +199,19 @@ function formatReply(replyNum, msgArray, isNsfw) {
     quoteBlock = "> " + targetMessage;
   } else {
 
-    var addEllipses = true;
-    var quotedMessage = targetMessage.slice(0, maxChars);
-    var cutoffMessage = targetMessage.slice(maxChars);
-    var blockQuoteMessage = quotedMessage;
-    var preCutoffSpoilerIndex = -1;
-    var preCutoffCodeIndex = -1;
+    let addEllipses = true;
+    let quotedMessage = targetMessage.slice(0, maxChars);
+    let cutoffMessage = targetMessage.slice(maxChars);
+    let blockQuoteMessage = quotedMessage;
+    let preCutoffSpoilerIndex = -1;
+    let preCutoffCodeIndex = -1;
 
-    //Checking for spoiler tags
+    // Checking for spoiler tags
     const baseSpoilerRegex = /^(?:(?!(\|\|)).)*((\|\|(?:(?!(\|\|)).)*\|\||`[^`]*`)(?:(?!(\|\||`)).)*)*/;
 
-    var spoilerRegex = concatRegex(baseSpoilerRegex, /\|\|(?:(?!(\|\|)).)+$/);
+    let spoilerRegex = concatRegex(baseSpoilerRegex, /\|\|(?:(?!(\|\|)).)+$/);
     if (spoilerRegex.test(quotedMessage) && cutoffMessage.indexOf("||") !== -1) {
-      var reverseQuotedMessage = quotedMessage.split("").reverse().join("");
+      let reverseQuotedMessage = quotedMessage.split("").reverse().join("");
       preCutoffSpoilerIndex = quotedMessage.length - 1 - (reverseQuotedMessage.indexOf("||") + 1);
     }
 
@@ -231,22 +231,22 @@ function formatReply(replyNum, msgArray, isNsfw) {
       blockQuoteMessage = quotedMessage.slice(0, maxChars - 1);
     }
 
-    //Checking for code blocks
+    // Checking for code blocks
     const baseCodeBlockRegex = /^(?:(?!(```)).)*((```(?:(?!(```)).)+[^`]```)|(```.```))*/;
 
-    var codeBlockRegex = concatRegex(baseCodeBlockRegex, /```(?:(?!(```)).)*/)
+    let codeBlockRegex = concatRegex(baseCodeBlockRegex, /```(?:(?!(```)).)*/)
     if (codeBlockRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("```") !== -1 && (!cutoffMessage.startsWith("'''")
         || cutoffMessage.startsWith("````"))) {
       blockQuoteMessage += "...```";
       addEllipses = false;
     }
 
-    //Checking for inline code tags
+    // Checking for inline code tags
     const baseCodeRegex = /^[^`]*((`[^`]*`|\|\|(?:(?!(\|\|)).)*\|\|)[^`]*)*/
 
-    var codeRegex = concatRegex(baseCodeRegex, /`[^`]+$/);
+    let codeRegex = concatRegex(baseCodeRegex, /`[^`]+$/);
     if (codeRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("`") !== -1) {
-      var reverseBlockQuoteMessage = blockQuoteMessage.split("").reverse().join("");
+      let reverseBlockQuoteMessage = blockQuoteMessage.split("").reverse().join("");
       preCutoffCodeIndex = blockQuoteMessage.length - 1 - (reverseBlockQuoteMessage.indexOf("`"));
     } else {
       codeRegex = concatRegex(baseCodeRegex, /`$/);
