@@ -39,9 +39,7 @@ Requires: <a href="https://nodejs.org/en/">Node.js</a>
 6.
 
 ```
-!anon set log #[log-channel]
-!anon set anon #[anon-msgs]
-!anon set deeptalks #[deep-talks]
+!anon set #[anon-msgs] #[deep-talks] #[log-channel]
 ```
 
 ## 📦 Contributing
