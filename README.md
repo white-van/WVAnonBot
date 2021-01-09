@@ -36,7 +36,7 @@ Requires: <a href="https://nodejs.org/en/">Node.js</a>
 5. Create three channels in your Discord server: one for logs, one for anon-messages, one for deep-talks.
    You will need administrator privileges in your discord server to set the channels.
 
-6. To set all channels at once, use `!anon set #[anon-msgs] #[deep-talks] #[log-channel] `
+6. To set all channels at once, use `!anon set #[anon-msgs] #[deep-talks] #[log-channel] `.
    To set channels individually, use the following commands:
 ```
 !anon set log #[log-channel]
