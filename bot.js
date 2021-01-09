@@ -21,8 +21,8 @@ client.on("message", (msg) => {
     // if has_accepted
     submitAnon(msg);
   } else if (
-    msg.channel.type === "text" &&
-    canConfigure(msg, metadata.permissions.CONFIGURE)
+      msg.channel.type === "text" &&
+      canConfigure(msg, metadata.permissions.CONFIGURE)
   ) {
     parseArguments(msg);
   }
@@ -31,7 +31,7 @@ client.on("message", (msg) => {
 // Central functionality
 async function submitAnon(msg) {
   const anonLogsChannel = database.getChannelDestination(
-    metadata.channels.ANONLOGS
+      metadata.channels.ANONLOGS
   );
   let destinationChannel = "";
 
@@ -45,12 +45,12 @@ async function submitAnon(msg) {
       return;
     case "!send":
       destinationChannel = database.getChannelDestination(
-        metadata.channels.ANONCHANNEL
+          metadata.channels.ANONCHANNEL
       );
       break;
     case "!send-deep":
       destinationChannel = database.getChannelDestination(
-        metadata.channels.DEEPTALKS
+          metadata.channels.DEEPTALKS
       );
       break;
     default:
@@ -71,19 +71,19 @@ async function submitAnon(msg) {
       if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
         messageToReplyTo = params[3];
         messageToSend = formatReply(
-          messageToReplyTo,
-          params.slice(4, params.length),
-          true
+            messageToReplyTo,
+            params.slice(4, params.length),
+            true
         );
         if (messageToSend === -1) {
           replyTorMessageWithStatus(msg, 2011);
           return;
         }
         messageToStore =
-          "||" + reconstructMessage(params.slice(4, params.length)) + "||";
+            "||" + reconstructMessage(params.slice(4, params.length)) + "||";
       } else if (params.length > 2) {
         messageToSend =
-          "||" + reconstructMessage(params.slice(2, params.length)) + "||";
+            "||" + reconstructMessage(params.slice(2, params.length)) + "||";
         messageToStore = messageToSend;
       } else {
         // incase someone sends a msg saying nsfw only
@@ -95,8 +95,8 @@ async function submitAnon(msg) {
       if (params.length > 3 && isNumeric(params[2])) {
         messageToReplyTo = params[2];
         messageToSend = formatReply(
-          messageToReplyTo,
-          params.slice(3, params.length)
+            messageToReplyTo,
+            params.slice(3, params.length)
         );
         if (messageToSend === -1) {
           replyTorMessageWithStatus(msg, 2011);
@@ -125,32 +125,32 @@ async function submitAnon(msg) {
     return;
   }
 
-  const msgId = database.addMessageAndGetNumber(messageToStore);
+  const msgId = database.addMessageAndGetNumber(messageToStore.trim());
   const anonId = encryptor.encrypt(msg.author.id);
   database.insertMsgMap(anonId, msgId);
 
   const msgEmbed = new discord.MessageEmbed()
-    .setDescription(messageToSend.trim())
-    .setColor(3447003)
-    .setTimestamp()
-    .setFooter("#" + msgId.toString());
+      .setDescription(messageToSend.trim())
+      .setColor(3447003)
+      .setTimestamp()
+      .setFooter("#" + msgId.toString());
 
   const destinationChannelObj = client.channels.cache.get(destinationChannel);
   const sent = await destinationChannelObj.send(msgEmbed);
   const messageUrl =
-    "https://discord.com/channels/" +
-    sent.guild.id +
-    "/" +
-    sent.channel.id +
-    "/" +
-    sent.id;
+      "https://discord.com/channels/" +
+      sent.guild.id +
+      "/" +
+      sent.channel.id +
+      "/" +
+      sent.id;
   database.updateMessageWithUrl(msgId, messageUrl);
 
   if (messageToReplyTo === false) {
     msg.reply("Message sent to " + destinationChannelObj.name);
   } else {
     msg.reply(
-      "Reply to message " +
+        "Reply to message " +
         messageToReplyTo +
         " sent to " +
         destinationChannelObj.name
@@ -165,7 +165,7 @@ async function submitAnon(msg) {
 }
 
 function formatReply(replyNum, msgArray, isNsfw) {
-  const targetMessage = database.getMessageByNumber(replyNum);
+  let targetMessage = database.getMessageByNumber(replyNum);
   const url = database.getMessageUrlByNumber(replyNum);
 
   if (url === "") {
@@ -173,31 +173,131 @@ function formatReply(replyNum, msgArray, isNsfw) {
   }
 
   const maxChars = 130;
-  let quoteBlock;
-  if (targetMessage.length <= maxChars) {
-    quoteBlock = "> " + targetMessage;
-  } else {
-    quoteBlock = "> " + targetMessage.slice(0, maxChars + 1) + "...";
+  const maxLines = 3;
+
+  let newlineInsertSequence = "> ";
+  if (targetMessage.startsWith(">>> ")) {
+    newlineInsertSequence = "> > ";
   }
 
-  let message;
-  if (isNsfw) {
-    message = "||" + reconstructMessage(msgArray) + "||";
+  let totalLines = 1;
+  let index = 0;
+  let nextNewlineIndex = targetMessage.indexOf('\n');
+  while (nextNewlineIndex !== -1 && totalLines <= maxLines) {
+    targetMessage = targetMessage.slice(0, index + nextNewlineIndex + 1) +
+        newlineInsertSequence +
+        targetMessage.slice(index + nextNewlineIndex + 1);
+    index += nextNewlineIndex + 3;
+    nextNewlineIndex = targetMessage.slice(index).indexOf('\n');
+    totalLines += 1;
+  }
+
+  let quoteBlock;
+  if (totalLines === 4) {
+    quoteBlock = "> " + targetMessage.slice(0, index) + "...";
+  } else if (targetMessage.length <= maxChars) {
+    quoteBlock = "> " + targetMessage;
   } else {
-    message = reconstructMessage(msgArray);
+
+    let addEllipses = true;
+    const quotedMessage = targetMessage.slice(0, maxChars);
+    const cutoffMessage = targetMessage.slice(maxChars);
+    let blockQuoteMessage = quotedMessage;
+    let preCutoffSpoilerIndex = -1;
+    let preCutoffCodeIndex = -1;
+
+    // Checking for spoiler tags
+    const baseSpoilerRegex = /^(?:(?!(\|\|)).)*((\|\|(?:(?!(\|\|)).)*\|\||`[^`]*`)(?:(?!(\|\||`)).)*)*/;
+
+    let spoilerRegex = concatRegex(baseSpoilerRegex, /\|\|(?:(?!(\|\|)).)+$/);
+    if (spoilerRegex.test(quotedMessage) && cutoffMessage.indexOf("||") !== -1) {
+      const reverseQuotedMessage = quotedMessage.split("").reverse().join("");
+      preCutoffSpoilerIndex = quotedMessage.length - 1 - (reverseQuotedMessage.indexOf("||") + 1);
+    }
+
+    spoilerRegex = concatRegex(baseSpoilerRegex, /\|\|$/);
+    if (spoilerRegex.test(quotedMessage) && cutoffMessage.indexOf("||") !== -1 && !cutoffMessage.startsWith("||")) {
+      blockQuoteMessage = quotedMessage.slice(0, maxChars - 2);
+    }
+
+    spoilerRegex = concatRegex(baseSpoilerRegex, /\|\|(?:(?!(\|\|)).)+\|$/);
+    if (spoilerRegex.test(quotedMessage) && cutoffMessage[0] === "|") {
+      blockQuoteMessage = quotedMessage + "|";
+      addEllipses = cutoffMessage !== "|";
+    }
+
+    spoilerRegex = concatRegex(baseSpoilerRegex, /\|$/);
+    if (spoilerRegex.test(quotedMessage) && cutoffMessage[0] === "|" && !cutoffMessage.startsWith("|||")) {
+      blockQuoteMessage = quotedMessage.slice(0, maxChars - 1);
+    }
+
+    // Checking for code blocks
+    const baseCodeBlockRegex = /^(?:(?!(```)).)*((```(?:(?!(```)).)+[^`]```)|(```.```))*/;
+
+    const codeBlockRegex = concatRegex(baseCodeBlockRegex, /```(?:(?!(```)).)*/)
+    if (codeBlockRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("```") !== -1 && (!cutoffMessage.startsWith("'''")
+        || cutoffMessage.startsWith("````"))) {
+      blockQuoteMessage += "...```";
+      addEllipses = false;
+    }
+
+    // Checking for inline code tags
+    const baseCodeRegex = /^[^`]*((`[^`]*`|\|\|(?:(?!(\|\|)).)*\|\|)[^`]*)*/
+
+    let codeRegex = concatRegex(baseCodeRegex, /`[^`]+$/);
+    if (codeRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("`") !== -1) {
+      const reverseBlockQuoteMessage = blockQuoteMessage.split("").reverse().join("");
+      preCutoffCodeIndex = blockQuoteMessage.length - 1 - (reverseBlockQuoteMessage.indexOf("`"));
+    } else {
+      codeRegex = concatRegex(baseCodeRegex, /`$/);
+      if (codeRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("`") !== -1 && !cutoffMessage.startsWith("`")) {
+        blockQuoteMessage = blockQuoteMessage.slice(0, blockQuoteMessage.length - 1);
+      }
+    }
+
+    if (preCutoffSpoilerIndex !== -1 && preCutoffCodeIndex !== -1) {
+      if (preCutoffSpoilerIndex < preCutoffCodeIndex) {
+        if (cutoffMessage.indexOf("`") < cutoffMessage.indexOf("||")) {
+          blockQuoteMessage += "`||";
+        } else {
+          blockQuoteMessage += "||";
+        }
+      } else {
+        blockQuoteMessage += "`";
+      }
+    } else if (preCutoffSpoilerIndex !== -1) {
+      blockQuoteMessage += "||";
+    } else if (preCutoffCodeIndex !== -1) {
+      blockQuoteMessage += "`";
+    }
+
+    quoteBlock = "> " + blockQuoteMessage;
+    if(addEllipses) {
+      quoteBlock += "...";
+    }
+
+  }
+
+  let message = reconstructMessage(msgArray);
+  if (isNsfw) {
+    message = "||" + message + "||";
   }
 
   return (
-    "Replying to [message " +
-    replyNum.toString() +
-    "](" +
-    url +
-    ")" +
-    "\n" +
-    quoteBlock +
-    "\n\n" +
-    message
+      "Replying to [message " +
+      replyNum.toString() +
+      "](" +
+      url +
+      ")" +
+      "\n" +
+      quoteBlock +
+      "\n\n" +
+      message
   );
+}
+
+function concatRegex(regex1, regex2) {
+  return new RegExp(regex1.source + regex2.source);
 }
 
 function parseArguments(msg) {
