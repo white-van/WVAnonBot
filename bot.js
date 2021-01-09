@@ -352,13 +352,13 @@ function handleSetCommand(params, msg) {
   const channelId = params[3] ? params[3].replace(/\D/g, "") : "";
   switch (params[2]) {
     case "log":
-      setChannel(channelId, metadata.channels.ANONLOGS, 0);
+      setChannel(channelId, metadata.channels.ANONLOGS, msg, 0);
       break;
     case "anon":
-      setChannel(channelId, metadata.channels.ANONCHANNEL, 1);
+      setChannel(channelId, metadata.channels.ANONCHANNEL, msg, 1);
       break;
     case "deeptalks":
-      setChannel(channelId, metadata.channels.DEEPTALKS, 2);
+      setChannel(channelId, metadata.channels.DEEPTALKS, msg, 2);
       break;
     default:
       replyTorMessageWithStatus(msg, 2001);
@@ -376,11 +376,11 @@ function handleSlowmodeCommand(params, msg) {
   database.deleteAllSlowdowns();
   database.setConfigurationTimer(metadata.configuration.SLOWMODE, seconds);
   replyTorMessageWithStatus(
-      msg,
-      seconds !== 0 ? 1003 : 1004,
-      seconds !== 0
-          ? seconds + (seconds !== 1 ? " seconds" : " second(why?)")
-          : ""
+    msg,
+    seconds !== 0 ? 1003 : 1004,
+    seconds !== 0
+      ? seconds + (seconds !== 1 ? " seconds" : " second(why?)")
+      : ""
   );
 }
 
@@ -402,15 +402,15 @@ function handleBanCommand(params, msg) {
     unbanTime = moment(unbanTime).add(arg3, "s");
 
     database.setMessageBlocker(
-        anonId,
-        metadata.blockReason.TEMPBAN,
-        reason,
-        unbanTime.format("DD MM YYYY HH:mm:ss")
+      anonId,
+      metadata.blockReason.TEMPBAN,
+      reason,
+      unbanTime.format("DD MM YYYY HH:mm:ss")
     );
     replyTorMessageWithStatus(
-        msg,
-        1005,
-        reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
+      msg,
+      1005,
+      reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
     );
     return;
   }
@@ -456,7 +456,7 @@ function replyTorMessageWithStatus(msg, status, suffix) {
 
 function canConfigure(msg, allowedRoles) {
   return msg.member.roles.cache.find((role) =>
-      allowedRoles.includes(role.name)
+    allowedRoles.includes(role.name)
   );
 }
 
