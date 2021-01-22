@@ -175,28 +175,10 @@ function formatReply(replyNum, msgArray, isNsfw) {
   const maxChars = 130;
   const maxLines = 3;
 
-  let newlineInsertSequence = "> ";
-  if (targetMessage.startsWith(">>> ")) {
-    newlineInsertSequence = "> > ";
-  }
-
-  let totalLines = 1;
-  let index = 0;
-  let nextNewlineIndex = targetMessage.indexOf('\n');
-  while (nextNewlineIndex !== -1 && totalLines <= maxLines) {
-    targetMessage = targetMessage.slice(0, index + nextNewlineIndex + 1) +
-        newlineInsertSequence +
-        targetMessage.slice(index + nextNewlineIndex + 1);
-    index += nextNewlineIndex + 3;
-    nextNewlineIndex = targetMessage.slice(index).indexOf('\n');
-    totalLines += 1;
-  }
-
   let quoteBlock;
-  if (totalLines === 4) {
-    quoteBlock = "> " + targetMessage.slice(0, index) + "...";
-  } else if (targetMessage.length <= maxChars) {
-    quoteBlock = "> " + targetMessage;
+
+  if (targetMessage.length <= maxChars) {
+    quoteBlock = targetMessage;
   } else {
 
     let addEllipses = true;
@@ -271,12 +253,36 @@ function formatReply(replyNum, msgArray, isNsfw) {
       blockQuoteMessage += "`";
     }
 
-    quoteBlock = "> " + blockQuoteMessage;
+    quoteBlock = blockQuoteMessage;
     if(addEllipses) {
       quoteBlock += "...";
     }
 
   }
+
+  //
+  let newlineInsertSequence = "> ";
+  if (quoteBlock.startsWith(">>> ")) {
+    newlineInsertSequence = "> > ";
+  }
+
+  let totalLines = 1;
+  let index = 0;
+  let nextNewlineIndex = targetMessage.indexOf('\n');
+  while (nextNewlineIndex !== -1 && totalLines <= maxLines) {
+    quoteBlock = quoteBlock.slice(0, index + nextNewlineIndex + 1) +
+        newlineInsertSequence +
+        quoteBlock.slice(index + nextNewlineIndex + 1);
+    index += nextNewlineIndex + 3;
+    nextNewlineIndex = quoteBlock.slice(index).indexOf('\n');
+    totalLines += 1;
+  }
+
+  if (totalLines === 4) {
+    quoteBlock = quoteBlock.slice(0, index) + "...";
+  }
+
+  quoteBlock = "> " + quoteBlock;
 
   let message = reconstructMessage(msgArray);
   if (isNsfw) {
