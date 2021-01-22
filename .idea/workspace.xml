@@ -54,7 +54,7 @@
       <updated>1609196120320</updated>
       <workItem from="1609196124174" duration="37495000" />
       <workItem from="1609368480709" duration="29223000" />
-      <workItem from="1611181379027" duration="5762000" />
+      <workItem from="1611181379027" duration="8281000" />
     </task>
     <servers />
   </component>
@@ -80,6 +80,12 @@
           <line>174</line>
           <properties lambdaOrdinal="-1" />
           <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/bot.js</url>
+          <line>179</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

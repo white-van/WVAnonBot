@@ -189,7 +189,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
     let preCutoffCodeIndex = -1;
 
     // Checking for spoiler tags
-    const baseSpoilerRegex = /^(?:(?!(\|\|)).)*((\|\|(?:(?!(\|\|)).)*\|\||`[^`]*`)(?:(?!(\|\||`)).)*)*/;
+    const baseSpoilerRegex = /^(?:(?!(\|\|))[\s\S])*((\|\|(?:(?!(\|\|)).)*\|\||`[^`]*`)(?:(?!(\|\||`))[\s\S])*)*/;
 
     let spoilerRegex = concatRegex(baseSpoilerRegex, /\|\|(?:(?!(\|\|)).)+$/);
     if (spoilerRegex.test(quotedMessage) && cutoffMessage.indexOf("||") !== -1) {
@@ -224,7 +224,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
     }
 
     // Checking for inline code tags
-    const baseCodeRegex = /^[^`]*((`[^`]*`|\|\|(?:(?!(\|\|)).)*\|\|)[^`]*)*/
+    const baseCodeRegex = /^([^`]|\s)*((`[^`]*`|\|\|(?:(?!(\|\|)).)*\|\|)([^`]|\s)*)*/;
 
     let codeRegex = concatRegex(baseCodeRegex, /`[^`]+$/);
     if (codeRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("`") !== -1) {
