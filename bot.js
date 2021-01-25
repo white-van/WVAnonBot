@@ -1,5 +1,4 @@
 const discord = require("discord.js");
-const discord = require("discord.js");
 const moment = require("moment");
 const client = new discord.Client();
 const auth = require("./auth.json");
