@@ -1,6 +1,6 @@
 # Changelog
 
-## V1.2 - Jan 4th, 2020
+## V1.2 - Jan 9th, 2020
 
 User-facing:
 
