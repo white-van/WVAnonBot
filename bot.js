@@ -132,7 +132,6 @@ async function submitAnon(msg) {
   const msgEmbed = new discord.MessageEmbed()
       .setDescription(messageToSend.trim())
       .setColor(3447003)
-      .setTimestamp()
       .setFooter("#" + msgId.toString());
 
   const destinationChannelObj = client.channels.cache.get(destinationChannel);
@@ -174,7 +173,6 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
   const maxChars = 130;
   const maxLines = 3;
-
   let quoteBlock;
 
   if (targetMessage.length <= maxChars) {
@@ -260,7 +258,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
   }
 
-  //
+  //Cutting off a message after three newlines
   let newlineInsertSequence = "> ";
   if (quoteBlock.startsWith(">>> ")) {
     newlineInsertSequence = "> > ";
