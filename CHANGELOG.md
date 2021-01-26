@@ -1,5 +1,10 @@
 # Changelog
 
+## V1.3 - Jan 25th, 2020
+
+1. Fixed the reply formatting for messages that are longer than 130 characters and have more than three newlines. Now, the quote block in
+   a reply to these types of messages cuts off after either 130 characters or three newlines, whichever comes first.
+
 ## V1.2 - Jan 9th, 2020
 
 User-facing:
@@ -10,6 +15,8 @@ User-facing:
 2. Easier setup - when adding the bot to your server, you can run !anon set #anon-msgs #deep-talks #anon-logs all in one go.
    Idea proposed by Yousef & implemented by Jarrod.
 3. Reorganized !help command for enhanced clarity
+4. Fixed the reply formatting for spoiler tags, code tags, and multiline code blocks when messages that are longer than 130 characters 
+   are replied to.
 
 Dev-side:
 
