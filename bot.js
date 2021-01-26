@@ -164,7 +164,7 @@ async function submitAnon(msg) {
 }
 
 function formatReply(replyNum, msgArray, isNsfw) {
-  let targetMessage = database.getMessageByNumber(replyNum);
+  const targetMessage = database.getMessageByNumber(replyNum);
   const url = database.getMessageUrlByNumber(replyNum);
 
   if (url === "") {
@@ -258,7 +258,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
   }
 
-  //Cutting off a message after three newlines
+  // Cutting off a message after three newlines
   let newlineInsertSequence = "> ";
   if (quoteBlock.startsWith(">>> ")) {
     newlineInsertSequence = "> > ";
