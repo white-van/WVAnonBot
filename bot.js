@@ -130,10 +130,9 @@ async function submitAnon(msg) {
   database.insertMsgMap(anonId, msgId);
 
   const msgEmbed = new discord.MessageEmbed()
-      .setDescription(messageToSend.trim())
-      .setColor(3447003)
-      .setTimestamp()
-      .setFooter("#" + msgId.toString());
+    .setDescription(messageToSend.trim())
+    .setColor(3447003)
+    .setFooter("#" + msgId.toString());
 
   const destinationChannelObj = client.channels.cache.get(destinationChannel);
   const sent = await destinationChannelObj.send(msgEmbed);
@@ -165,7 +164,7 @@ async function submitAnon(msg) {
 }
 
 function formatReply(replyNum, msgArray, isNsfw) {
-  let targetMessage = database.getMessageByNumber(replyNum);
+  const targetMessage = database.getMessageByNumber(replyNum);
   const url = database.getMessageUrlByNumber(replyNum);
 
   if (url === "") {
@@ -174,29 +173,10 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
   const maxChars = 130;
   const maxLines = 3;
-
-  let newlineInsertSequence = "> ";
-  if (targetMessage.startsWith(">>> ")) {
-    newlineInsertSequence = "> > ";
-  }
-
-  let totalLines = 1;
-  let index = 0;
-  let nextNewlineIndex = targetMessage.indexOf('\n');
-  while (nextNewlineIndex !== -1 && totalLines <= maxLines) {
-    targetMessage = targetMessage.slice(0, index + nextNewlineIndex + 1) +
-        newlineInsertSequence +
-        targetMessage.slice(index + nextNewlineIndex + 1);
-    index += nextNewlineIndex + 3;
-    nextNewlineIndex = targetMessage.slice(index).indexOf('\n');
-    totalLines += 1;
-  }
-
   let quoteBlock;
-  if (totalLines === 4) {
-    quoteBlock = "> " + targetMessage.slice(0, index) + "...";
-  } else if (targetMessage.length <= maxChars) {
-    quoteBlock = "> " + targetMessage;
+
+  if (targetMessage.length <= maxChars) {
+    quoteBlock = targetMessage;
   } else {
 
     let addEllipses = true;
@@ -207,7 +187,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
     let preCutoffCodeIndex = -1;
 
     // Checking for spoiler tags
-    const baseSpoilerRegex = /^(?:(?!(\|\|)).)*((\|\|(?:(?!(\|\|)).)*\|\||`[^`]*`)(?:(?!(\|\||`)).)*)*/;
+    const baseSpoilerRegex = /^(?:(?!(\|\|))[\s\S])*((\|\|(?:(?!(\|\|)).)*\|\||`[^`]*`)(?:(?!(\|\||`))[\s\S])*)*/;
 
     let spoilerRegex = concatRegex(baseSpoilerRegex, /\|\|(?:(?!(\|\|)).)+$/);
     if (spoilerRegex.test(quotedMessage) && cutoffMessage.indexOf("||") !== -1) {
@@ -242,7 +222,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
     }
 
     // Checking for inline code tags
-    const baseCodeRegex = /^[^`]*((`[^`]*`|\|\|(?:(?!(\|\|)).)*\|\|)[^`]*)*/
+    const baseCodeRegex = /^([^`]|\s)*((`[^`]*`|\|\|(?:(?!(\|\|)).)*\|\|)([^`]|\s)*)*/;
 
     let codeRegex = concatRegex(baseCodeRegex, /`[^`]+$/);
     if (codeRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("`") !== -1) {
@@ -271,12 +251,36 @@ function formatReply(replyNum, msgArray, isNsfw) {
       blockQuoteMessage += "`";
     }
 
-    quoteBlock = "> " + blockQuoteMessage;
+    quoteBlock = blockQuoteMessage;
     if(addEllipses) {
       quoteBlock += "...";
     }
 
   }
+
+  // Cutting off a message after three newlines
+  let newlineInsertSequence = "> ";
+  if (quoteBlock.startsWith(">>> ")) {
+    newlineInsertSequence = "> > ";
+  }
+
+  let totalLines = 1;
+  let index = 0;
+  let nextNewlineIndex = targetMessage.indexOf('\n');
+  while (nextNewlineIndex !== -1 && totalLines <= maxLines) {
+    quoteBlock = quoteBlock.slice(0, index + nextNewlineIndex + 1) +
+        newlineInsertSequence +
+        quoteBlock.slice(index + nextNewlineIndex + 1);
+    index += nextNewlineIndex + 3;
+    nextNewlineIndex = quoteBlock.slice(index).indexOf('\n');
+    totalLines += 1;
+  }
+
+  if (totalLines === 4) {
+    quoteBlock = quoteBlock.slice(0, index) + "...";
+  }
+
+  quoteBlock = "> " + quoteBlock;
 
   let message = reconstructMessage(msgArray);
   if (isNsfw) {
