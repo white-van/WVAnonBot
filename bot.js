@@ -21,8 +21,8 @@ client.on("message", (msg) => {
     // if has_accepted
     submitAnon(msg);
   } else if (
-    msg.channel.type === "text" &&
-    canConfigure(msg, metadata.permissions.CONFIGURE)
+      msg.channel.type === "text" &&
+      canConfigure(msg, metadata.permissions.CONFIGURE)
   ) {
     parseArguments(msg);
   }
@@ -31,7 +31,7 @@ client.on("message", (msg) => {
 // Central functionality
 async function submitAnon(msg) {
   const anonLogsChannel = database.getChannelDestination(
-    metadata.channels.ANONLOGS
+      metadata.channels.ANONLOGS
   );
   let destinationChannel = "";
 
@@ -45,12 +45,12 @@ async function submitAnon(msg) {
       return;
     case "!send":
       destinationChannel = database.getChannelDestination(
-        metadata.channels.ANONCHANNEL
+          metadata.channels.ANONCHANNEL
       );
       break;
     case "!send-deep":
       destinationChannel = database.getChannelDestination(
-        metadata.channels.DEEPTALKS
+          metadata.channels.DEEPTALKS
       );
       break;
     default:
@@ -71,19 +71,19 @@ async function submitAnon(msg) {
       if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
         messageToReplyTo = params[3];
         messageToSend = formatReply(
-          messageToReplyTo,
-          params.slice(4, params.length),
-          true
+            messageToReplyTo,
+            params.slice(4, params.length),
+            true
         );
         if (messageToSend === -1) {
           replyTorMessageWithStatus(msg, 2011);
           return;
         }
         messageToStore =
-          "||" + reconstructMessage(params.slice(4, params.length)) + "||";
+            "||" + reconstructMessage(params.slice(4, params.length)) + "||";
       } else if (params.length > 2) {
         messageToSend =
-          "||" + reconstructMessage(params.slice(2, params.length)) + "||";
+            "||" + reconstructMessage(params.slice(2, params.length)) + "||";
         messageToStore = messageToSend;
       } else {
         // incase someone sends a msg saying nsfw only
@@ -95,8 +95,8 @@ async function submitAnon(msg) {
       if (params.length > 3 && isNumeric(params[2])) {
         messageToReplyTo = params[2];
         messageToSend = formatReply(
-          messageToReplyTo,
-          params.slice(3, params.length)
+            messageToReplyTo,
+            params.slice(3, params.length)
         );
         if (messageToSend === -1) {
           replyTorMessageWithStatus(msg, 2011);
@@ -137,19 +137,19 @@ async function submitAnon(msg) {
   const destinationChannelObj = client.channels.cache.get(destinationChannel);
   const sent = await destinationChannelObj.send(msgEmbed);
   const messageUrl =
-    "https://discord.com/channels/" +
-    sent.guild.id +
-    "/" +
-    sent.channel.id +
-    "/" +
-    sent.id;
+      "https://discord.com/channels/" +
+      sent.guild.id +
+      "/" +
+      sent.channel.id +
+      "/" +
+      sent.id;
   database.updateMessageWithUrl(msgId, messageUrl);
 
   if (messageToReplyTo === false) {
     msg.reply("Message sent to " + destinationChannelObj.name);
   } else {
     msg.reply(
-      "Reply to message " +
+        "Reply to message " +
         messageToReplyTo +
         " sent to " +
         destinationChannelObj.name
@@ -288,15 +288,15 @@ function formatReply(replyNum, msgArray, isNsfw) {
   }
 
   return (
-    "Replying to [message " +
-    replyNum.toString() +
-    "](" +
-    url +
-    ")" +
-    "\n" +
-    quoteBlock +
-    "\n\n" +
-    message
+      "Replying to [message " +
+      replyNum.toString() +
+      "](" +
+      url +
+      ")" +
+      "\n" +
+      quoteBlock +
+      "\n\n" +
+      message
   );
 }
 
@@ -356,13 +356,13 @@ function handleSetCommand(params, msg) {
   const channelId = params[3] ? params[3].replace(/\D/g, "") : "";
   switch (params[2]) {
     case "log":
-      setChannel(channelId, metadata.channels.ANONLOGS, 0);
+      setChannel(channelId, metadata.channels.ANONLOGS, msg, 0);
       break;
     case "anon":
-      setChannel(channelId, metadata.channels.ANONCHANNEL, 1);
+      setChannel(channelId, metadata.channels.ANONCHANNEL, msg, 1);
       break;
     case "deeptalks":
-      setChannel(channelId, metadata.channels.DEEPTALKS, 2);
+      setChannel(channelId, metadata.channels.DEEPTALKS, msg, 2);
       break;
     default:
       replyTorMessageWithStatus(msg, 2001);
