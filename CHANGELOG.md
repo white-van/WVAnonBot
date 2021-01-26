@@ -4,6 +4,7 @@
 
 1. Fixed the reply formatting for messages that are longer than 130 characters and have more than three newlines. Now, the quote block in
    a reply to these types of messages cuts off after either 130 characters or three newlines, whichever comes first.
+2. Removed the timestamp from messages.
 
 ## V1.2 - Jan 9th, 2021
 
