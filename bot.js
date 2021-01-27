@@ -130,10 +130,9 @@ async function submitAnon(msg) {
   database.insertMsgMap(anonId, msgId);
 
   const msgEmbed = new discord.MessageEmbed()
-      .setDescription(messageToSend.trim())
-      .setColor(3447003)
-      .setTimestamp()
-      .setFooter("#" + msgId.toString());
+    .setDescription(messageToSend.trim())
+    .setColor(3447003)
+    .setFooter("#" + msgId.toString());
 
   const destinationChannelObj = client.channels.cache.get(destinationChannel);
   const sent = await destinationChannelObj.send(msgEmbed);
@@ -165,7 +164,7 @@ async function submitAnon(msg) {
 }
 
 function formatReply(replyNum, msgArray, isNsfw) {
-  let targetMessage = database.getMessageByNumber(replyNum);
+  const targetMessage = database.getMessageByNumber(replyNum);
   const url = database.getMessageUrlByNumber(replyNum);
 
   if (url === "") {
@@ -174,29 +173,10 @@ function formatReply(replyNum, msgArray, isNsfw) {
 
   const maxChars = 130;
   const maxLines = 3;
-
-  let newlineInsertSequence = "> ";
-  if (targetMessage.startsWith(">>> ")) {
-    newlineInsertSequence = "> > ";
-  }
-
-  let totalLines = 1;
-  let index = 0;
-  let nextNewlineIndex = targetMessage.indexOf('\n');
-  while (nextNewlineIndex !== -1 && totalLines <= maxLines) {
-    targetMessage = targetMessage.slice(0, index + nextNewlineIndex + 1) +
-        newlineInsertSequence +
-        targetMessage.slice(index + nextNewlineIndex + 1);
-    index += nextNewlineIndex + 3;
-    nextNewlineIndex = targetMessage.slice(index).indexOf('\n');
-    totalLines += 1;
-  }
-
   let quoteBlock;
-  if (totalLines === 4) {
-    quoteBlock = "> " + targetMessage.slice(0, index) + "...";
-  } else if (targetMessage.length <= maxChars) {
-    quoteBlock = "> " + targetMessage;
+
+  if (targetMessage.length <= maxChars) {
+    quoteBlock = targetMessage;
   } else {
 
     let addEllipses = true;
@@ -207,7 +187,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
     let preCutoffCodeIndex = -1;
 
     // Checking for spoiler tags
-    const baseSpoilerRegex = /^(?:(?!(\|\|)).)*((\|\|(?:(?!(\|\|)).)*\|\||`[^`]*`)(?:(?!(\|\||`)).)*)*/;
+    const baseSpoilerRegex = /^(?:(?!(\|\|))[\s\S])*((\|\|(?:(?!(\|\|)).)*\|\||`[^`]*`)(?:(?!(\|\||`))[\s\S])*)*/;
 
     let spoilerRegex = concatRegex(baseSpoilerRegex, /\|\|(?:(?!(\|\|)).)+$/);
     if (spoilerRegex.test(quotedMessage) && cutoffMessage.indexOf("||") !== -1) {
@@ -242,7 +222,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
     }
 
     // Checking for inline code tags
-    const baseCodeRegex = /^[^`]*((`[^`]*`|\|\|(?:(?!(\|\|)).)*\|\|)[^`]*)*/
+    const baseCodeRegex = /^([^`]|\s)*((`[^`]*`|\|\|(?:(?!(\|\|)).)*\|\|)([^`]|\s)*)*/;
 
     let codeRegex = concatRegex(baseCodeRegex, /`[^`]+$/);
     if (codeRegex.test(blockQuoteMessage) && cutoffMessage.indexOf("`") !== -1) {
@@ -271,12 +251,36 @@ function formatReply(replyNum, msgArray, isNsfw) {
       blockQuoteMessage += "`";
     }
 
-    quoteBlock = "> " + blockQuoteMessage;
+    quoteBlock = blockQuoteMessage;
     if(addEllipses) {
       quoteBlock += "...";
     }
 
   }
+
+  // Cutting off a message after three newlines
+  let newlineInsertSequence = "> ";
+  if (quoteBlock.startsWith(">>> ")) {
+    newlineInsertSequence = "> > ";
+  }
+
+  let totalLines = 1;
+  let index = 0;
+  let nextNewlineIndex = targetMessage.indexOf('\n');
+  while (nextNewlineIndex !== -1 && totalLines <= maxLines) {
+    quoteBlock = quoteBlock.slice(0, index + nextNewlineIndex + 1) +
+        newlineInsertSequence +
+        quoteBlock.slice(index + nextNewlineIndex + 1);
+    index += nextNewlineIndex + 3;
+    nextNewlineIndex = quoteBlock.slice(index).indexOf('\n');
+    totalLines += 1;
+  }
+
+  if (totalLines === 4) {
+    quoteBlock = quoteBlock.slice(0, index) + "...";
+  }
+
+  quoteBlock = "> " + quoteBlock;
 
   let message = reconstructMessage(msgArray);
   if (isNsfw) {
@@ -352,13 +356,13 @@ function handleSetCommand(params, msg) {
   const channelId = params[3] ? params[3].replace(/\D/g, "") : "";
   switch (params[2]) {
     case "log":
-      setChannel(channelId, metadata.channels.ANONLOGS, 0);
+      setChannel(channelId, metadata.channels.ANONLOGS, msg, 0);
       break;
     case "anon":
-      setChannel(channelId, metadata.channels.ANONCHANNEL, 1);
+      setChannel(channelId, metadata.channels.ANONCHANNEL, msg, 1);
       break;
     case "deeptalks":
-      setChannel(channelId, metadata.channels.DEEPTALKS, 2);
+      setChannel(channelId, metadata.channels.DEEPTALKS, msg, 2);
       break;
     default:
       replyTorMessageWithStatus(msg, 2001);
@@ -376,11 +380,11 @@ function handleSlowmodeCommand(params, msg) {
   database.deleteAllSlowdowns();
   database.setConfigurationTimer(metadata.configuration.SLOWMODE, seconds);
   replyTorMessageWithStatus(
-      msg,
-      seconds !== 0 ? 1003 : 1004,
-      seconds !== 0
-          ? seconds + (seconds !== 1 ? " seconds" : " second(why?)")
-          : ""
+    msg,
+    seconds !== 0 ? 1003 : 1004,
+    seconds !== 0
+      ? seconds + (seconds !== 1 ? " seconds" : " second(why?)")
+      : ""
   );
 }
 
@@ -402,15 +406,15 @@ function handleBanCommand(params, msg) {
     unbanTime = moment(unbanTime).add(arg3, "s");
 
     database.setMessageBlocker(
-        anonId,
-        metadata.blockReason.TEMPBAN,
-        reason,
-        unbanTime.format("DD MM YYYY HH:mm:ss")
+      anonId,
+      metadata.blockReason.TEMPBAN,
+      reason,
+      unbanTime.format("DD MM YYYY HH:mm:ss")
     );
     replyTorMessageWithStatus(
-        msg,
-        1005,
-        reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
+      msg,
+      1005,
+      reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
     );
     return;
   }
@@ -456,7 +460,7 @@ function replyTorMessageWithStatus(msg, status, suffix) {
 
 function canConfigure(msg, allowedRoles) {
   return msg.member.roles.cache.find((role) =>
-      allowedRoles.includes(role.name)
+    allowedRoles.includes(role.name)
   );
 }
 
