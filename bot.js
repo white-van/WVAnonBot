@@ -372,7 +372,7 @@ function handleSetCommand(params, msg) {
 
 function handleSlowmodeCommand(params, msg) {
   const seconds = params[2];
-  if (!isNaN(seconds)) {
+  if (isNaN(seconds)) {
     replyTorMessageWithStatus(msg, 2005);
     return;
   }
@@ -397,7 +397,7 @@ function handleBanCommand(params, msg) {
 
   let reason = "";
   if (typeOfBan === "tempban") {
-    if (!anonId || !arg3 || !!isNaN(arg3) || params.length < 5) {
+    if (!anonId || !arg3 || isNaN(arg3) || params.length < 5) {
       replyTorMessageWithStatus(msg, 2006);
       return;
     }
