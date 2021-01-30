@@ -372,7 +372,7 @@ function handleSetCommand(params, msg) {
 
 function handleSlowmodeCommand(params, msg) {
   const seconds = params[2];
-  if (!!isNaN(seconds)) {
+  if (!isNaN(seconds)) {
     replyTorMessageWithStatus(msg, 2005);
     return;
   }
