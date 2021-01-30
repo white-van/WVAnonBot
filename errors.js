@@ -28,6 +28,10 @@ const errorMap = {
           "!anon permban msg_id reason -> Permanently bans a user with a reason\n" +
           "!anon unban msg_id -> Unbans a user\n" +
           "NOTE: User will see ban reason when they attempt to send a message to the bot",
+      },
+      {
+        name: "Filters",
+        value: "!anon slur word -> Adds a slur to the block list",
       }
     )
     .setTimestamp(),
