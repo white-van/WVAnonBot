@@ -68,7 +68,7 @@ async function submitAnon(msg) {
   let messageToStore;
   switch (params[1]) {
     case "nsfw":
-      if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
+      if (params.length > 4 && params[2] === "reply" && !isNaN(params[3])) {
         messageToReplyTo = params[3];
         messageToSend = formatReply(
             messageToReplyTo,
@@ -92,7 +92,7 @@ async function submitAnon(msg) {
       }
       break;
     case "reply":
-      if (params.length > 3 && isNumeric(params[2])) {
+      if (params.length > 3 && !isNaN(params[2])) {
         messageToReplyTo = params[2];
         messageToSend = formatReply(
             messageToReplyTo,
@@ -372,7 +372,7 @@ function handleSetCommand(params, msg) {
 
 function handleSlowmodeCommand(params, msg) {
   const seconds = params[2];
-  if (!isNumeric(seconds)) {
+  if (!!isNaN(seconds)) {
     replyTorMessageWithStatus(msg, 2005);
     return;
   }
@@ -397,7 +397,7 @@ function handleBanCommand(params, msg) {
 
   let reason = "";
   if (typeOfBan === "tempban") {
-    if (!anonId || !arg3 || !isNumeric(arg3) || params.length < 5) {
+    if (!anonId || !arg3 || !!isNaN(arg3) || params.length < 5) {
       replyTorMessageWithStatus(msg, 2006);
       return;
     }
@@ -462,11 +462,6 @@ function canConfigure(msg, allowedRoles) {
   return msg.member.roles.cache.find((role) =>
     allowedRoles.includes(role.name)
   );
-}
-
-// Why doesn't js have an inbuilt function for this?
-function isNumeric(value) {
-  return /^\d+$/.test(value);
 }
 
 client.login(auth.token);
