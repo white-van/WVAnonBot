@@ -126,13 +126,15 @@ async function submitAnon(msg) {
     replyTorMessageWithStatus(msg, timerError.errorCode, timerError.suffix);
     return;
   }
+
+  const anonId = encryptor.encrypt(msg.author.id);
   if (!isCool(messageToSend)) {
     replyTorMessageWithStatus(msg, 2012);
+    handleTempBan(msg, anonId, 86400, "Hate speech");
     return;
   }
 
   const msgId = database.addMessageAndGetNumber(messageToStore.trim());
-  const anonId = encryptor.encrypt(msg.author.id);
   database.insertMsgMap(anonId, msgId);
 
   const msgEmbed = new discord.MessageEmbed()
@@ -428,6 +430,23 @@ function handleSlowmodeCommand(params, msg) {
   );
 }
 
+function handleTempBan(msg, anonId, duration, reason) {
+  let unbanTime = moment().utc();
+  unbanTime = moment(unbanTime).add(duration, "s");
+
+  database.setMessageBlocker(
+    anonId,
+    metadata.blockReason.TEMPBAN,
+    reason,
+    unbanTime.format("DD MM YYYY HH:mm:ss")
+  );
+  replyTorMessageWithStatus(
+    msg,
+    1005,
+    reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
+  );
+}
+
 function handleBanCommand(params, msg) {
   const typeOfBan = params[1];
   const msgId = params[2];
@@ -441,20 +460,12 @@ function handleBanCommand(params, msg) {
       replyTorMessageWithStatus(msg, 2006);
       return;
     }
-    reason = reconstructMessage(params.slice(4, params.length));
-    let unbanTime = moment().utc();
-    unbanTime = moment(unbanTime).add(arg3, "s");
 
-    database.setMessageBlocker(
-      anonId,
-      metadata.blockReason.TEMPBAN,
-      reason,
-      unbanTime.format("DD MM YYYY HH:mm:ss")
-    );
-    replyTorMessageWithStatus(
+    handleTempBan(
       msg,
-      1005,
-      reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
+      anonId,
+      arg3,
+      reconstructMessage(params.slice(4, params.length))
     );
     return;
   }
