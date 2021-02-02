@@ -175,6 +175,7 @@
       "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
       "version": "1.0.0"
     },
+    "iscool": "^2.0.1",
     "kuler": {
       "integrity": "sha512-Xq9nH7KlWZmXAtodXDDRE7vs6DU1gTU8zYDHDiWLSip45Egwq3plLHzPn27NgvzL2r1LMPC1vdqh98sQxtqj4A==",
       "resolved": "https://registry.npmjs.org/kuler/-/kuler-2.0.0.tgz",
