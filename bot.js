@@ -131,6 +131,7 @@ async function submitAnon(msg) {
   if (!isCool(messageToSend)) {
     replyTorMessageWithStatus(msg, 2012);
     handleTempBan(msg, anonId, 86400, "Hate speech");
+    sendLogMessage(`User ${anonId} has been temp banned for saying ${msg}`)
     return;
   }
 
@@ -517,6 +518,17 @@ function replyTorMessageWithStatus(msg, status, suffix) {
   } else {
     msg.channel.messages.channel.send(errors.getError(status, suffix));
   }
+}
+
+function sendLogMessage(msg) {
+  const anonLogsChannel = database.getChannelDestination(
+    metadata.channels.ANONLOGS
+  );
+
+  const msgEmbed = new discord.MessageEmbed()
+  .setDescription(msg)
+  .setColor(3447003)
+  client.channels.cache.get(anonLogsChannel).send(msgEmbed);
 }
 
 function canConfigure(msg, allowedRoles) {
