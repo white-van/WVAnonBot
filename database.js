@@ -16,6 +16,14 @@ function getOrSetEncryptor(bufferIv) {
 }
 
 function setChannelDestinations(colName, channelId) {
+  if (colName == 'podcastChannel')
+  {
+    const stmt = db.prepare(
+      "UPDATE podcastdest SET channel = " + channelId
+    );
+    stmt.run();
+    return;
+  }
   const stmt = db.prepare(
     "UPDATE channelDestinations SET " + colName + " = " + channelId
   );
@@ -23,6 +31,13 @@ function setChannelDestinations(colName, channelId) {
 }
 
 function getChannelDestination(colName) {
+  if (colName == 'podcastChannel')
+  {
+    const stmt = db.prepare(
+      "SELECT channel AS channelID FROM podcastdest"
+    );
+    return stmt.get().channelID;
+  }
   const stmt = db.prepare(
     "SELECT " + colName + " AS channelID FROM channelDestinations"
   );
@@ -276,6 +291,13 @@ function initializeTables() {
   stmt.run();
   // Table for hate speech filter
   stmt = db.prepare("CREATE TABLE IF NOT EXISTS slurs (word TEXT NOT NULL)");
+  stmt.run();
+
+  // Podcast channel. Lazy bones
+  stmt = db.prepare("CREATE TABLE IF NOT EXISTS podcastdest (channel TEXT)");
+  stmt.run();
+
+  stmt = db.prepare("INSERT INTO podcastdest VALUES ('')");
   stmt.run();
 }
 

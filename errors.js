@@ -14,7 +14,11 @@ const errorMap = {
           "!anon set log #channel -> Sets the logger channel for the bot to dump submitted messages with anon IDs\n" +
           "!anon set anon #channel -> Sets the anon channel for the bot to write to\n" +
           "!anon set deeptalks #channel -> Sets the deep talk channel for the bot to write to\n" +
-          "!anon set #anon-msgs #deep-talks #anon-logs -> Sets all three channels at once",
+          "!anon set #anon-msgs #deep-talks #anon-logs -> Sets all three channels at once\n\n\n"
+      },
+      {
+        name : "Special podcast channel",
+        value: "!anon set podcast #your-letter-channel -> Sets the channel for where users can submit podcast letters or whatever they wish really"
       },
       {
         name: "Timers",
@@ -58,7 +62,14 @@ const errorMap = {
         "Examples: !send-deep hello, !send-deep nsfw hello\n\n" +
         "• `!send/send-deep (nsfw) reply msg_number_here your_message`\n" +
         "Description: Replies to the message with the specified message number\n" +
-        "Examples: !send reply 123 hello, !send-deep nsfw reply 123 hello\n",
+        "Examples: !send reply 123 hello, !send-deep nsfw reply 123 hello\n\n\n"
+    })
+    .addFields({
+      name: "SPECIAL PODCAST CHANNEL",
+      value: "• `!submit-podcast-letter your_message`\n" +
+      "Description: Sends a letter to the podcast letters channel for the interviewees to answer\n" +
+      "Replying and nsfw arg are disabled within that channel, you can only send\n" +
+      "Keep on topic(aka, letters), and keep it clean."
     })
     .setTimestamp(),
   // Rules for user
@@ -109,6 +120,10 @@ const errorMap = {
   3001: "You've send too many messages within a short timeframe. Try again in ",
   3002: "You've been temporarily banned from posting anon messages. Reason: ",
   3003: "You've been permenantly banned from posting anon messages. Reason: ",
+  // Podcast
+  10000: "Podcast letters channel set successfully. Make sure the bot can actually see the channel in discord with its perms! (check the sidebar while in the channel. "
+    + "If you see the bot, you're good. If not, give it perms in discord to be able to access it.)",
+  11002: "Podcast letters channel provided is an invalid channel."
 };
 
 module.exports = {

@@ -37,6 +37,8 @@ async function submitAnon(msg) {
   );
   let destinationChannel = "";
 
+  let breakTheCode = false;
+
   const params = msg.content.split(" ");
   switch (params[0]) {
     case "!help":
@@ -55,6 +57,12 @@ async function submitAnon(msg) {
         metadata.channels.DEEPTALKS
       );
       break;
+    case "!submit-podcast-letter":
+      destinationChannel = database.getChannelDestination(
+        metadata.channels.PODCAST
+      );
+      breakTheCode = true;
+      break;
     default:
       replyTorMessageWithStatus(msg, 2009);
       return;
@@ -68,53 +76,60 @@ async function submitAnon(msg) {
   let messageToReplyTo = false;
   let messageToSend;
   let messageToStore;
-  switch (params[1]) {
-    case "nsfw":
-      if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
-        messageToReplyTo = params[3];
-        messageToSend = formatReply(
-          messageToReplyTo,
-          params.slice(4, params.length),
-          true
-        );
-        if (messageToSend === -1) {
-          replyTorMessageWithStatus(msg, 2011);
-          return;
+
+  if (breakTheCode) {
+    messageToSend = reconstructMessage(params.slice(1, params.length));
+    messageToStore = messageToSend;
+  }
+  else {
+    switch (params[1]) {
+      case "nsfw":
+        if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
+          messageToReplyTo = params[3];
+          messageToSend = formatReply(
+            messageToReplyTo,
+            params.slice(4, params.length),
+            true
+          );
+          if (messageToSend === -1) {
+            replyTorMessageWithStatus(msg, 2011);
+            return;
+          }
+          messageToStore =
+            "||" + reconstructMessage(params.slice(4, params.length)) + "||";
+        } else if (params.length > 2) {
+          messageToSend =
+            "||" + reconstructMessage(params.slice(2, params.length)) + "||";
+          messageToStore = messageToSend;
+        } else {
+          // incase someone sends a msg saying nsfw only
+          messageToSend = reconstructMessage(params.slice(1, params.length));
+          messageToStore = messageToSend;
         }
-        messageToStore =
-          "||" + reconstructMessage(params.slice(4, params.length)) + "||";
-      } else if (params.length > 2) {
-        messageToSend =
-          "||" + reconstructMessage(params.slice(2, params.length)) + "||";
-        messageToStore = messageToSend;
-      } else {
-        // incase someone sends a msg saying nsfw only
+        break;
+      case "reply":
+        if (params.length > 3 && isNumeric(params[2])) {
+          messageToReplyTo = params[2];
+          messageToSend = formatReply(
+            messageToReplyTo,
+            params.slice(3, params.length)
+          );
+          if (messageToSend === -1) {
+            replyTorMessageWithStatus(msg, 2011);
+            return;
+          }
+          messageToStore = reconstructMessage(params.slice(3, params.length));
+        } else {
+          // in case someone sends a msg saying reply followed by a number only
+          messageToSend = reconstructMessage(params.slice(1, params.length));
+          messageToStore = messageToSend;
+        }
+        break;
+      default:
         messageToSend = reconstructMessage(params.slice(1, params.length));
         messageToStore = messageToSend;
-      }
-      break;
-    case "reply":
-      if (params.length > 3 && isNumeric(params[2])) {
-        messageToReplyTo = params[2];
-        messageToSend = formatReply(
-          messageToReplyTo,
-          params.slice(3, params.length)
-        );
-        if (messageToSend === -1) {
-          replyTorMessageWithStatus(msg, 2011);
-          return;
-        }
-        messageToStore = reconstructMessage(params.slice(3, params.length));
-      } else {
-        // in case someone sends a msg saying reply followed by a number only
-        messageToSend = reconstructMessage(params.slice(1, params.length));
-        messageToStore = messageToSend;
-      }
-      break;
-    default:
-      messageToSend = reconstructMessage(params.slice(1, params.length));
-      messageToStore = messageToSend;
-      break;
+        break;
+    }
   }
   if (anonLogsChannel === "" || destinationChannel === "") {
     msg.reply("The bot first needs to be configured!");
@@ -406,6 +421,9 @@ function handleSetCommand(params, msg) {
       break;
     case "deeptalks":
       setChannel(channelId, metadata.channels.DEEPTALKS, msg, 2);
+      break;
+    case "podcast":
+      setChannel(channelId, metadata.channels.PODCAST, msg, 9000);
       break;
     default:
       replyTorMessageWithStatus(msg, 2001);

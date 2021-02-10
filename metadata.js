@@ -2,6 +2,7 @@ const channels = {
   ANONCHANNEL: "anonChannel",
   ANONLOGS: "anonLogChannel",
   DEEPTALKS: "deepTalksChannel",
+  PODCAST: "podcastChannel",
 };
 
 const blockReason = {
