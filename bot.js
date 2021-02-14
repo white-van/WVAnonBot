@@ -159,7 +159,18 @@ async function submitAnon(msg) {
     .setFooter("#" + msgId.toString());
 
   const destinationChannelObj = client.channels.cache.get(destinationChannel);
-  const sent = await destinationChannelObj.send(msgEmbed);
+  var sent = "";
+  if (!breakTheCode) {
+    sent = await destinationChannelObj.send(msgEmbed)
+  }
+  else {
+    await destinationChannelObj.send(msgEmbed).then(sentMessage => {
+      sentMessage.react("✅");
+      sentMessage.react("❌");
+      sent = sentMessage;
+    });
+  }
+
   const messageUrl =
     "https://discord.com/channels/" +
     sent.guild.id +
