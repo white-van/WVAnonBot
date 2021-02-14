@@ -166,7 +166,6 @@ async function submitAnon(msg) {
   else {
     await destinationChannelObj.send(msgEmbed).then(sentMessage => {
       sentMessage.react("✅");
-      sentMessage.react("❌");
       sent = sentMessage;
     });
   }
