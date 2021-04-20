@@ -43,6 +43,13 @@ function getConfigurationTimer(colName) {
   return stmt.get().config;
 }
 
+function getBanList() {
+  const statement = db.prepare(
+    "SELECT * FROM messageBlocker WHERE reason != ?"
+  );
+  return statement.all(metadata.blockReason.SLOWMODE);
+}
+
 function setMessageBlocker(encryptedUser, reason, explanation, dateOfUnban) {
   // Update if exists, else create
   let stmt = db.prepare(
@@ -216,6 +223,7 @@ module.exports = {
   getConfigurationTimer,
   setMessageBlocker,
   getMessageBlocker,
+  getBanList,
   deleteMessageBlocker,
   deleteAllSlowdowns,
   addMessageAndGetNumber,
