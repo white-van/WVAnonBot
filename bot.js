@@ -8,6 +8,7 @@ const database = require("./database.js");
 const createIsCool = require("iscool");
 const metadata = require("./metadata.js");
 const timerhandler = require("./timerhandler.js");
+const ms = require("ms");
 // Hooks
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -131,7 +132,7 @@ async function submitAnon(msg) {
   if (!isCool(messageToSend)) {
     replyTorMessageWithStatus(msg, 2012);
     handleTempBan(msg, anonId, 86400, "Hate speech");
-    sendLogMessage(`User ${anonId} has been temp banned for saying ${msg}`)
+    sendLogMessage(`User ${anonId} has been temp banned for saying ${msg}`);
     return;
   }
 
@@ -344,13 +345,43 @@ function concatRegex(regex1, regex2) {
   return new RegExp(regex1.source + regex2.source);
 }
 
-function parseArguments(msg) {
+function createMsgEmbed(title, content) {
+  const msg = new discord.MessageEmbed()
+    .setColor(3447003)
+    .addFields({
+      name: title,
+      value: content,
+    })
+    .setTimestamp();
+  return msg;
+}
+
+function formatBanlist(banlist) {
+  const str = "```uid | reason | explanation | date\n";
+  const bans = banlist
+    .map((ban) => {
+      return `${ban.encryptedUserId} | ${ban.reason} | ${ban.explanation} | ${ban.date}`;
+    })
+    .join("\n");
+  const content = str + bans + "```";
+  return createMsgEmbed("Banlist", content);
+}
+
+async function parseArguments(msg) {
   const params = msg.content.split(" ");
 
   if (params[0] === "!anon") {
     switch (params[1]) {
       case "help":
         replyTorMessageWithStatus(msg, 0);
+        break;
+      case "banlist":
+        replyTorMessageWithStatus(
+          msg,
+          null,
+          null,
+          formatBanlist(database.getBanList())
+        );
         break;
       case "set":
         handleSetCommand(params, msg);
@@ -507,14 +538,17 @@ function reconstructMessage(params) {
   return params.join(" ");
 }
 
-function replyTorMessageWithStatus(msg, status, suffix) {
+function replyTorMessageWithStatus(msg, status, suffix, content) {
   const errorDesc = errors.getError(status);
   // Help message special case. Setting header
   if (status === 0) {
     errorDesc.setAuthor(client.user.username, client.user.avatarURL());
   }
-  if (msg.channel.type === "dm") {
+
+  if (msg.channel && msg.channel.type === "dm") {
     msg.reply(errors.getError(status, suffix));
+  } else if (content) {
+    msg.channel.messages.channel.send(content);
   } else {
     msg.channel.messages.channel.send(errors.getError(status, suffix));
   }
@@ -526,8 +560,8 @@ function sendLogMessage(msg) {
   );
 
   const msgEmbed = new discord.MessageEmbed()
-  .setDescription(msg)
-  .setColor(3447003)
+    .setDescription(msg)
+    .setColor(3447003);
   client.channels.cache.get(anonLogsChannel).send(msgEmbed);
 }
 
