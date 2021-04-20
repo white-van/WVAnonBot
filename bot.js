@@ -8,7 +8,6 @@ const database = require("./database.js");
 const createIsCool = require("iscool");
 const metadata = require("./metadata.js");
 const timerhandler = require("./timerhandler.js");
-const ms = require("ms");
 // Hooks
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
