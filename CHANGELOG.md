@@ -1,5 +1,10 @@
 # Changelog
 
+## V1.4 - Apr 19th, 2021
+
+1. Added a banlist command that displays all currently banned users
+2. Enabled unban command to also take in anon id
+
 ## V1.3 - Jan 25th, 2021
 
 1. Fixed the reply formatting for messages that are longer than 130 characters and have more than three newlines. Now, the quote block in
