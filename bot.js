@@ -513,7 +513,11 @@ function handleBanCommand(params, msg) {
 
 function handleUnbanCommand(params, msg) {
   const msgId = params[2];
-  const anonId = database.getAnonIdFromMsgId(msgId);
+  let anonId = msgId;
+
+  if (msgId.length !== 36) {
+    anonId = database.getAnonIdFromMsgId(msgId);
+  }
 
   if (!anonId || params.length < 3) {
     replyTorMessageWithStatus(msg, 2008);
