@@ -44,8 +44,10 @@ function getConfigurationTimer(colName) {
 }
 
 function getBanList() {
-  const statement = db.prepare("SELECT * FROM messageBlocker");
-  return statement.all();
+  const statement = db.prepare(
+    "SELECT * FROM messageBlocker WHERE reason != ?"
+  );
+  return statement.all(metadata.blockReason.SLOWMODE);
 }
 
 function setMessageBlocker(encryptedUser, reason, explanation, dateOfUnban) {
