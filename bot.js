@@ -191,7 +191,6 @@ async function submitAnon(msg) {
 }
 
 function isValidReplyNumber(param) {
-  console.log(isNumeric(param))
   return isNumeric(param) || (param[0] === '#' && isNumeric(param.slice(1)))
 }
 
