@@ -115,7 +115,7 @@ function addMessageAndGetNumber(msg) {
   }
 
   stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?, ?)");
-  stmt.run(messageNumber, msg, "", 0);
+  stmt.run(messageNumber, msg, "", "0");
 
   return messageNumber;
 }
@@ -131,7 +131,8 @@ function setMessageAsDeleted(num) {
   const stmt = db.prepare(
       "UPDATE messages SET is_deleted = ? WHERE number = ?"
   );
-  stmt.run(1, num);
+  stmt.run("1", num);
+
 }
 
 function getMessageByNumber(num) {
@@ -174,15 +175,20 @@ function messageNumberIsRepliable(num) {
   result = stmt.get();
   const lastRepliableMessageNumber = result.number;
 
-  const sentAfterUpdate = num >= firstRepliableMessageNumber && num <= lastRepliableMessageNumber;
-
+  // Return false if message number is out of bounds
+  if (num < firstRepliableMessageNumber || num > lastRepliableMessageNumber) {
+    return false;
+  }
 
   stmt = db.prepare("SELECT * FROM messages WHERE number= ?");
   result = stmt.get(num);
-  const isDeleted = result.isDeleted === 1;
 
+  // Return false if message has been deleted
+  if (parseInt(result.is_deleted) === 1) {
+    return false
+  }
 
-  return sentAfterUpdate && !isDeleted;
+  return true;
 
 }
 

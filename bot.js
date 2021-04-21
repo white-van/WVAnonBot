@@ -11,6 +11,7 @@ const timerhandler = require("./timerhandler.js");
 // Hooks
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
+  client.user.setActivity("!help");
 });
 let isCool;
 reinitializeFilter();
@@ -36,9 +37,13 @@ client.on("messageDelete", (msg) => {
   const deepChannelId = database.getChannelDestination(metadata.channels.DEEPTALKS);
 
   // If an anon message is deleted, make it unrepliable
-  if (msg.author.id === client.user.id && msg.channel.id in [anonChannelId, deepChannelId]) {
+  if (msg.author.id === client.user.id
+      && (msg.channel.id === anonChannelId
+      || msg.channel.id === deepChannelId)) {
+
     const messageNum = parseInt(msg.embeds[0].footer.text.slice(1));
     database.setMessageAsDeleted(messageNum);
+
   }
 
 });
@@ -78,13 +83,13 @@ async function submitAnon(msg) {
     replyTorMessageWithStatus(msg, 2009);
     return;
   }
-  let messageToReplyTo = false;
+  let messageToReplyTo = -1;
   let messageToSend;
   let messageToStore;
   switch (params[1]) {
     case "nsfw":
-      if (params.length > 4 && params[2] === "reply" && isNumeric(params[3])) {
-        messageToReplyTo = params[3];
+      if (params.length > 4 && params[2] === "reply" && isValidReplyNumber(params[3])) {
+        messageToReplyTo = isNumeric(params[3]) ? params[3] : params[3].slice(1);
         messageToSend = formatReply(
           messageToReplyTo,
           params.slice(4, params.length),
@@ -107,8 +112,8 @@ async function submitAnon(msg) {
       }
       break;
     case "reply":
-      if (params.length > 3 && isNumeric(params[2])) {
-        messageToReplyTo = params[2];
+      if (params.length > 3 && isValidReplyNumber(params[2])) {
+        messageToReplyTo = isNumeric(params[2]) ? params[2] : params[2].slice(1);
         messageToSend = formatReply(
           messageToReplyTo,
           params.slice(3, params.length)
@@ -167,7 +172,7 @@ async function submitAnon(msg) {
     sent.id;
   database.updateMessageWithUrl(msgId, messageUrl);
 
-  if (messageToReplyTo === false) {
+  if (messageToReplyTo === -1) {
     msg.reply("Message sent to " + destinationChannelObj.name);
   } else {
     msg.reply(
@@ -183,6 +188,11 @@ async function submitAnon(msg) {
     value: destinationChannelObj.name,
   });
   client.channels.cache.get(anonLogsChannel).send(msgEmbed);
+}
+
+function isValidReplyNumber(param) {
+  console.log(isNumeric(param))
+  return isNumeric(param) || (param[0] === '#' && isNumeric(param.slice(1)))
 }
 
 function formatReply(replyNum, msgArray, isNsfw) {
