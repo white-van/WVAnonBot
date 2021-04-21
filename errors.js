@@ -50,7 +50,7 @@ const errorMap = {
     .addFields({
       name: "Messaging commands",
       value:
-        '*The nsfw argument is optional.* If "nsfw" is included, the message will be wrapped in spoiler tags.\n\n' +
+        '**The nsfw argument is optional.**\nIf "nsfw" is included, the message will be wrapped in spoiler tags.\n\n' +
         "• `!send (nsfw) your_message`\n" +
         "Description: sends a message to the anonymous chat\n" +
         "Examples:    !send hello, !send nsfw hello\n\n" +
@@ -106,6 +106,11 @@ const errorMap = {
     "Number of the message to reply to is either invalid or belongs to a message that was sent before the " +
     "reply-feature update. Only messages that were sent after the reply-feature update can be replied to.",
   2012: "Please do not use WVAnon for hate speech. Rethink your life choices, please.",
+
+    "The reply could not be sent. Either the message number is invalid, the message has been deleted, or the " +
+    "message was sent before the reply command was introduced. As a reminder, the reply command is " +
+    "`!send/send-deep (nsfw) reply msg_number_here your_message`. For example, `!send reply 123 hello`, or " +
+    "`!send-deep nsfw reply 123 hello`."
   // Message blocks
   3000: "Slowmode is active. Try sending in ",
   3001: "You've send too many messages within a short timeframe. Try again in ",

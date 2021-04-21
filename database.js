@@ -114,8 +114,8 @@ function addMessageAndGetNumber(msg) {
     messageNumber = result.number + 1;
   }
 
-  stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?)");
-  stmt.run(messageNumber, msg, "");
+  stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?, ?)");
+  stmt.run(messageNumber, msg, "", 0);
 
   return messageNumber;
 }
@@ -125,6 +125,13 @@ function updateMessageWithUrl(number, url) {
     "UPDATE messages SET message_url = ? WHERE number = ?"
   );
   stmt.run(url, number);
+}
+
+function setMessageAsDeleted(num) {
+  const stmt = db.prepare(
+      "UPDATE messages SET is_deleted = ? WHERE number = ?"
+  );
+  stmt.run(1, num);
 }
 
 function getMessageByNumber(num) {
@@ -167,9 +174,16 @@ function messageNumberIsRepliable(num) {
   result = stmt.get();
   const lastRepliableMessageNumber = result.number;
 
-  return (
-    num >= firstRepliableMessageNumber && num <= lastRepliableMessageNumber
-  );
+  const sentAfterUpdate = num >= firstRepliableMessageNumber && num <= lastRepliableMessageNumber;
+
+
+  stmt = db.prepare("SELECT * FROM messages WHERE number= ?");
+  result = stmt.get(num);
+  const isDeleted = result.isDeleted === 1;
+
+
+  return sentAfterUpdate && !isDeleted;
+
 }
 
 function getAnonIdFromMsgId(msgId) {
@@ -230,6 +244,7 @@ module.exports = {
   getMessageByNumber,
   getMessageUrlByNumber,
   updateMessageWithUrl,
+  setMessageAsDeleted,
   getAnonIdFromMsgId,
   insertMsgMap,
   getSlurs,
@@ -279,7 +294,7 @@ function initializeTables() {
   // Message number, content, and url
   stmt = db.prepare(
     "CREATE TABLE IF NOT EXISTS messages (number INTEGER PRIMARY KEY, " +
-      "message_content TEXT NOT NULL, message_url TEXT)"
+      "message_content TEXT NOT NULL, message_url TEXT, is_deleted INTEGER)"
   );
   stmt.run();
   // Table for hate speech filter

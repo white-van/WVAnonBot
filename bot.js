@@ -30,6 +30,19 @@ client.on("message", (msg) => {
   }
 });
 
+client.on("messageDelete", (msg) => {
+
+  const anonChannelId = database.getChannelDestination(metadata.channels.ANONCHANNEL);
+  const deepChannelId = database.getChannelDestination(metadata.channels.DEEPTALKS);
+
+  // If an anon message is deleted, make it unrepliable
+  if (msg.author.id === client.user.id && msg.channel.id in [anonChannelId, deepChannelId]) {
+    const messageNum = parseInt(msg.embeds[0].footer.text.slice(1));
+    database.setMessageAsDeleted(messageNum);
+  }
+
+});
+
 // Central functionality
 async function submitAnon(msg) {
   const anonLogsChannel = database.getChannelDestination(
