@@ -64,22 +64,22 @@ const errorMap = {
     .setTimestamp(),
   // Rules for user
   2: new discord.MessageEmbed()
-      .setDescription("WVAnon")
-      .setColor(3447003)
-      .addFields({
-        name: "Rules",
-        value:
-            "1. NSFW content must be wrapped in a spoiler tag (use the nsfw argument!)\n" +
-            "2. No impersonation\n" +
-            "3. All rules in <#534583763217285131> still apply!",
-      })
-      .addFields({
-        name: "Contribution",
-        value:
-            "Visit https://github.com/white-van/WVAnonBot to view the codebase\n" +
-            "Contributions welcome!",
-      })
-      .setTimestamp(),
+    .setDescription("WVAnon")
+    .setColor(3447003)
+    .addFields({
+      name: "Rules",
+      value:
+        "1. NSFW content must be wrapped in a spoiler tag (use the nsfw argument!)\n" +
+        "2. No impersonation\n" +
+        "3. All rules in <#534583763217285131> still apply!",
+    })
+    .addFields({
+      name: "Contribution",
+      value:
+        "Visit https://github.com/white-van/WVAnonBot to view the codebase\n" +
+        "Contributions welcome!",
+    })
+    .setTimestamp(),
   // Success
   1000: "Logs channel configured successfully",
   1001: "Anon channel configured successfully",
