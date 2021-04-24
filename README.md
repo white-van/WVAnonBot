@@ -22,8 +22,7 @@ As of April 24th, 2021, 2048 anonymous messages have been sent!
 Requires: <a href="https://nodejs.org/en/">Node.js</a>
 
 1. <a href="https://discordpy.readthedocs.io/en/latest/discord.html">Create a Discord Bot Account</a>
-2. Clone the repository
-3. Create a file called auth.json in the root directory of your clone:
+2. Create a file called auth.json in the root directory of your copy of the repository:
 
 ```
     {
