@@ -2,7 +2,7 @@
 
 WVAnon is a Discord bot developed by the UTM White Van Discord to enable users to send anonymous messages. We tried <a href="https://disforge.com/bot/288-juzoconfession">JuzoConfession</a> and <a href="https://nminchow.github.io/VoltaireWeb/">Voltaire</a>, but neither of them satisfied us in terms of usability, security, and privacy.
 
-As of April 24th, 2021, 2028 anonymous messages have been sent!
+As of April 24th, 2021, 2048 anonymous messages have been sent!
 
 1. Voltaire supported banning users, however displaying the user ID all the time led to users being hesitant to use the channel.
 2. An update to the Discord API resulted in Voltaire being unable to "see" users. Users had to run a bot command (like !volt help) to gain access, however this could reveal their identity to anyone who saw the message and to the admins in the deleted logs.
