@@ -235,6 +235,27 @@ function insertSlur(word) {
   stmt.run(word);
 }
 
+function getDmChannel(anonId) {
+  const stmt = db.prepare("SELECT channelId FROM dmChannels WHERE anonId = ?");
+  const result = stmt.get(anonId);
+  if (!result) {
+    return;
+  }
+  return result.channelId;
+}
+
+function setDmChannel(anonId, channelId) {
+  // Update if exists, else create
+  let stmt = db.prepare("SELECT channelId FROM dmChannels WHERE anonId = ?");
+  if (stmt.get(anonId)) {
+    stmt = db.prepare("UPDATE dmChannels SET channelId = ? WHERE anonId = ?");
+    stmt.run(channelId, anonId);
+    return;
+  }
+  stmt = db.prepare("INSERT INTO dmChannels VALUES (?, ?)");
+  stmt.run(channelId, anonId);
+}
+
 module.exports = {
   getOrSetEncryptor,
   setChannelDestinations,
@@ -255,6 +276,8 @@ module.exports = {
   insertMsgMap,
   getSlurs,
   insertSlur,
+  getDmChannel,
+  setDmChannel,
 };
 
 // Initial setup
@@ -305,6 +328,12 @@ function initializeTables() {
   stmt.run();
   // Table for hate speech filter
   stmt = db.prepare("CREATE TABLE IF NOT EXISTS slurs (word TEXT NOT NULL)");
+  stmt.run();
+
+  // Table to map dm channel id to anon id
+  stmt = db.prepare(
+    "CREATE TABLE IF NOT EXISTS dmChannels (channelId TEXT, anonId TEXT)"
+  );
   stmt.run();
 }
 
