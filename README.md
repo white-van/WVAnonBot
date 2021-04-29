@@ -60,3 +60,4 @@ Requires: <a href="https://nodejs.org/en/">Node.js</a>
 - <a href="https://github.com/SergeyGV">Sergey Gayvoronsky</a>
 - <a href="https://github.com/jcserv">Jarrod Servilla</a>
 - <a href="https://github.com/CometWhoosh">Yousef Bulbulia</a>
+- <a href="https://github.com/DakshChan">Daksh Malhotra</a>
