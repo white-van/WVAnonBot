@@ -326,6 +326,14 @@ function initializeTables() {
       "message_content TEXT NOT NULL, message_url TEXT, is_deleted INTEGER)"
   );
   stmt.run();
+  try {
+    stmt = db.prepare(
+      "ALTER TABLE messages ADD COLUMN is_deleted INTEGER"
+    );
+    stmt.run();
+  } catch (e) {
+      // Nothing to upgrade
+  }
   // Table for hate speech filter
   stmt = db.prepare("CREATE TABLE IF NOT EXISTS slurs (word TEXT NOT NULL)");
   stmt.run();
