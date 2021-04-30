@@ -1,5 +1,9 @@
 # Changelog
 
+## V1.5 - Apr 29th, 2021
+
+1. Made the bot DM the user when they have been banned / unbanned
+
 ## V1.4 - Apr 21st, 2021
 
 1. Added a banlist command that displays all currently banned users

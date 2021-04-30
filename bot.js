@@ -55,6 +55,10 @@ async function submitAnon(msg) {
     );
     let destinationChannel = "";
 
+    const anonId = encryptor.encrypt(msg.author.id);
+
+    database.setDmChannel(anonId.toString(), msg.channel.id.toString());
+
     const params = msg.content.split(" ");
     switch (params[0]) {
         case "!help":
@@ -145,7 +149,6 @@ async function submitAnon(msg) {
         return;
     }
 
-    const anonId = encryptor.encrypt(msg.author.id);
     if (!isCool(messageToSend)) {
         replyTorMessageWithStatus(msg, 2012);
         handleTempBan(msg, anonId, 86400, "Hate speech");
@@ -487,17 +490,21 @@ function handleTempBan(msg, anonId, duration, reason) {
     let unbanTime = moment().utc();
     unbanTime = moment(unbanTime).add(duration, "s");
 
+    const DMChannelId = database.getDmChannel(anonId);
+
     database.setMessageBlocker(
         anonId,
         metadata.blockReason.TEMPBAN,
         reason,
         unbanTime.format("DD MM YYYY HH:mm:ss")
-    );
-    replyTorMessageWithStatus(
-        msg,
-        1005,
-        reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss")
-    );
+  );
+  const banMsg =
+      reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss");
+  replyTorMessageWithStatus(msg, 1005, banMsg);
+  if (DMChannelId) {
+      const dm = new discord.DMChannel(client, { id: DMChannelId });
+      dm.send("You have been temporarily banned.\nReason: " + banMsg);
+  }
 }
 
 function handleBanCommand(params, msg) {
@@ -506,6 +513,7 @@ function handleBanCommand(params, msg) {
     const arg3 = params[3]; // Seconds only in tempban, start of reason otherwise
 
     const anonId = database.getAnonIdFromMsgId(msgId);
+    const DMChannelId = database.getDmChannel(anonId);
 
     let reason = "";
     if (typeOfBan === "tempban") {
@@ -530,6 +538,11 @@ function handleBanCommand(params, msg) {
     reason = reconstructMessage(params.slice(3, params.length));
     database.setMessageBlocker(anonId, metadata.blockReason.PERMBAN, reason, "");
     replyTorMessageWithStatus(msg, 1006, reason);
+
+    if (DMChannelId) {
+        const dm = new discord.DMChannel(client, { id: DMChannelId });
+        dm.send("You have been permanently banned.\nReason: " + reason);
+    }
 }
 
 function handleUnbanCommand(params, msg) {
@@ -547,6 +560,13 @@ function handleUnbanCommand(params, msg) {
 
     database.deleteMessageBlocker(anonId);
     replyTorMessageWithStatus(msg, 1007, anonId);
+
+    const DMChannelId = database.getDmChannel(anonId);
+
+    if (DMChannelId) {
+        const dm = new discord.DMChannel(client, { id: DMChannelId });
+        dm.send("You have been unbanned.");
+    }
 }
 
 function handleSlurCommand(params, msg) {
