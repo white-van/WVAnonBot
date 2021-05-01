@@ -3,15 +3,16 @@
 ## V1.5 - Apr 29th, 2021
 
 1. Made the bot DM the user when they have been banned / unbanned
+2. Added the status "Playing !help"
+3. Made deleted messages incapable of being replied to
+4. Improved !help command for better readability
+5. Made the reply command accept the pound sign before the message number
+
 
 ## V1.4 - Apr 21st, 2021
 
 1. Added a banlist command that displays all currently banned users
 2. Enabled unban command to also take in anon id
-3. Added the status "Playing !help"
-4. Made deleted messages incapable of being replied to
-5. Improved !help command for better readability
-6. Made the reply command accept the pound sign before the message number
 
 ## V1.3 - Jan 25th, 2021
 
