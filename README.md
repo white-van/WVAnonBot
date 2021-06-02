@@ -12,6 +12,7 @@ As of April 30th, 2021, 2100 anonymous messages have been sent!
 
 - Supports sending messages to two channels (anon-msgs & deep-talks) which can be configured
 - Ban users
+- Warn users
 - Anonymity for users
 - Slow mode
 - Replies

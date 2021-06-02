@@ -1,5 +1,9 @@
 # Changelog
 
+## V1.6 - June 2nd, 2021
+
+1. Introduced a warnings feature that allows admins and mods to warn users for sending inappropriate messages.
+
 ## V1.5 - Apr 29th, 2021
 
 1. Made the bot DM the user when they have been banned / unbanned
