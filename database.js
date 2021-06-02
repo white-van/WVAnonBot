@@ -168,8 +168,8 @@ function getMessageUrlByNumber(num) {
 
 function messageNumberIsRepliable(num) {
 
-  let stmt = db.prepare("SELECT * FROM messages WHERE number = ?");
-  let result = stmt.get(num);
+  const stmt = db.prepare("SELECT * FROM messages WHERE number = ?");
+  const result = stmt.get(num);
 
   if (typeof(result) === "undefined") {
     return false;
@@ -336,7 +336,7 @@ function setWarnLimits(tempLimit, permLimit) {
 }
 
 function setWarnTempbanDuration(duration) {
-  let stmt = db.prepare("UPDATE warnSettings SET tempban_duration = ? WHERE rownum = 1");
+  const stmt = db.prepare("UPDATE warnSettings SET tempban_duration = ? WHERE rownum = 1");
   stmt.run(duration);
 }
 
