@@ -351,12 +351,12 @@ function getPermbanWarnLimit() {
 }
 
 function getWarnTempbanDuration() {
-  let const = db.prepare("SELECT * FROM warnSettings");
+  const stmt = db.prepare("SELECT * FROM warnSettings");
   return stmt.get().tempban_duration;
 }
 
 function getWarnedUsersInfo() {
-  let const = db.prepare("SELECT * FROM warns");
+  const stmt = db.prepare("SELECT * FROM warns");
   return stmt.all();
 }
 
