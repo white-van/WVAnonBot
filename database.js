@@ -2,7 +2,6 @@
 const sqlite = require("better-sqlite3");
 const db = new sqlite("./dbfile");
 const metadata = require("./metadata.js");
-const discord = require("discord.js");
 
 function getOrSetEncryptor(bufferIv) {
   // Can only have one encryptor value. Get an existing, or set and return passed
@@ -77,7 +76,7 @@ function getMessageBlocker(encryptedUser) {
 function isBanned(encrypedUser) {
 
   const stmt = db.prepare("SELECT * FROM messageBlocker WHERE encryptedUserId = ?");
-  return typeof(stmt.get(encrypedUser)) != "undefined";
+  return typeof(stmt.get(encrypedUser)) !== "undefined";
 
 }
 
@@ -165,32 +164,6 @@ function getMessageUrlByNumber(num) {
   );
   const result = stmt.get();
   return result.message_url;
-}
-
-function messageNumberIsValid(num) {
-
-  let stmt = db.prepare(
-      "SELECT * FROM messages WHERE number=(SELECT MIN(number) from messages)"
-  );
-  let result = stmt.get();
-  if (!result) {
-    return "";
-  }
-  const firstRepliableMessageNumber = result.number;
-
-  stmt = db.prepare(
-      "SELECT * FROM messages WHERE number=(SELECT MAX(number) from messages)"
-  );
-  result = stmt.get();
-  const lastRepliableMessageNumber = result.number;
-
-  // Return false if message number is out of bounds
-  if (firstRepliableMessageNumber < num && num < lastRepliableMessageNumber) {
-    return true;
-  }
-
-  return false
-
 }
 
 function messageNumberIsRepliable(num) {
@@ -282,7 +255,7 @@ function addWarn(msgId) {
 
   const anonId = getAnonIdFromMsgId(msgId);
   let stmt = db.prepare("SELECT * FROM warns WHERE anon_id = ?");
-  let result = stmt.get(anonId);
+  const result = stmt.get(anonId);
 
   if (typeof(result) === "undefined") {
     stmt = db.prepare("INSERT INTO warns VALUES(?, ?, ?)");
@@ -318,8 +291,8 @@ function addWarn(msgId) {
 }
 
 function isWarnable(msgId) {
-  let stmt = db.prepare("SELECT * FROM messages WHERE number = ?");
-  let result = stmt.get(msgId);
+  const stmt = db.prepare("SELECT * FROM messages WHERE number = ?");
+  cnost result = stmt.get(msgId);
 
   if (typeof(result) === "undefined") {
     return false;
@@ -333,7 +306,7 @@ function isWarnable(msgId) {
 }
 
 function getWarnCount(anonId, banType) {
-  let stmt, result;
+  let stmt;
   if (banType === metadata.blockReason.TEMPBAN) {
     stmt = db.prepare("SELECT temp_count FROM warns WHERE anon_id = ?");
     return stmt.get(anonId).temp_count;
@@ -348,18 +321,17 @@ function getWarnCount(anonId, banType) {
 function clearWarnCount(anonId, banType) {
   let stmt;
 
-  if (banType == metadata.blockReason.TEMPBAN) {
+  if (banType === metadata.blockReason.TEMPBAN) {
     stmt = db.prepare("UPDATE warns SET temp_count = 0 WHERE anon_id = ?");
     stmt.run(anonId);
-  } else if (banType == metadata.blockReason.PERMBAN) {
+  } else if (banType === metadata.blockReason.PERMBAN) {
     stmt = db.prepare("UPDATE warns SET temp_count = 0, perm_count = 0 WHERE anon_id = ?");
     stmt.run(anonId);
   }
 }
 
 function setWarnLimits(tempLimit, permLimit) {
-  let stmt;
-  stmt = db.prepare("UPDATE warnSettings SET tempban_limit = ?, permban_limit = ? WHERE rownum = 1");
+  const stmt = db.prepare("UPDATE warnSettings SET tempban_limit = ?, permban_limit = ? WHERE rownum = 1");
   stmt.run(tempLimit, permLimit);
 }
 
@@ -369,22 +341,22 @@ function setWarnTempbanDuration(duration) {
 }
 
 function getTempbanWarnLimit() {
-  let stmt = db.prepare("SELECT * FROM warnSettings");
+  const stmt = db.prepare("SELECT * FROM warnSettings");
   return stmt.get().tempban_limit;
 }
 
 function getPermbanWarnLimit() {
-  let stmt = db.prepare("SELECT * FROM warnSettings");
+  const stmt = db.prepare("SELECT * FROM warnSettings");
   return stmt.get().permban_limit;
 }
 
 function getWarnTempbanDuration() {
-  let stmt = db.prepare("SELECT * FROM warnSettings");
+  let const = db.prepare("SELECT * FROM warnSettings");
   return stmt.get().tempban_duration;
 }
 
 function getWarnedUsersInfo() {
-  let stmt = db.prepare("SELECT * FROM warns");
+  let const = db.prepare("SELECT * FROM warns");
   return stmt.all();
 }
 
@@ -490,10 +462,6 @@ function initializeTables() {
   );
   stmt.run();
 
-
-
-
-
   // Table for warns
   stmt = db.prepare(
       "CREATE TABLE IF NOT EXISTS warns (anon_id TEXT NOT NULL, " +
@@ -501,24 +469,21 @@ function initializeTables() {
   );
   stmt.run();
 
-  // Table for individual variables
-
+  // Table for warn settings variables
   stmt = db.prepare(
-      "CREATE TABLE IF NOT EXISTS warnSettings (rownum INTEGER, tempban_limit INTEGER, permban_limit INTEGER, tempban_duration INTEGER)"
+      "CREATE TABLE IF NOT EXISTS warnSettings (rownum INTEGER, " +
+      "tempban_limit INTEGER, permban_limit INTEGER, tempban_duration INTEGER)"
   );
   stmt.run();
 
   // Initialize with -1's
   stmt = db.prepare("SELECT * FROM warnSettings");
-  let result = stmt.get();
+  const result = stmt.get();
 
   if (typeof(result) === "undefined") {
     stmt = db.prepare("INSERT INTO warnSettings VALUES (1, -1, -1, -1)");
     stmt.run();
   }
-
-
-
 
 }
 

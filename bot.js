@@ -694,7 +694,7 @@ function handleWarnCommand(params, msg) {
 }
 
 function handleWarnLimitCommand(params, msg) {
-    if (params.length != 4 || !isNumeric(params[2]) || !isNumeric(params[3])) {
+    if (params.length !== 4 || !isNumeric(params[2]) || !isNumeric(params[3])) {
         replyTorMessageWithStatus(msg, 2012);
         return;
     }
@@ -708,12 +708,12 @@ function handleWarnLimitCommand(params, msg) {
     }
 
     database.setWarnLimits(tempLimit, permLimit);
-    message = `Tempban warn limit set  to ${tempLimit}\nPermban warn limit set to ${permLimit}`;
+    const message = `Tempban warn limit set  to ${tempLimit}\nPermban warn limit set to ${permLimit}`;
     msg.channel.send(message);
 
     const warnedUsersInfo= database.getWarnedUsersInfo();
 
-    let warnChangeAnnouncement = `The limits on the number of warns users can receive before being temporarily and ` +
+    const warnChangeAnnouncement = `The limits on the number of warns users can receive before being temporarily and ` +
                                  `permanently banned has changed. The warn limit for temporary bans is now ` +
                                  `${tempLimit} warns and the warn limit for permanent bans is now ${permLimit} ` +
                                  `warns.\n\n`;
@@ -756,8 +756,8 @@ function handleWarnLimitCommand(params, msg) {
                       `started, you have been temporarily banned from sending anonymous messages. Your ban will be ` +
                       `lifted in ${database.getWarnTempbanDuration()} days.`;
         } else {
-            let warnsUntilTempban = tempLimit - tempCount;
-            let warnsUntilPermban = permLimit - permCount;
+            const warnsUntilTempban = tempLimit - tempCount;
+            const warnsUntilPermban = permLimit - permCount;
 
             response = warnChangeAnnouncement +
                       `After these changes:\n`;
@@ -775,7 +775,7 @@ function handleWarnLimitCommand(params, msg) {
 }
 
 function handleSetWarnTempbanDuration(params, msg) {
-    if (params.length != 3 || !isNumeric(params[2])) {
+    if (params.length !== 3 || !isNumeric(params[2])) {
         replyTorMessageWithStatus(msg, 2013);
         return;
     }
