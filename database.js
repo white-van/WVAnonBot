@@ -292,7 +292,7 @@ function addWarn(msgId) {
 
 function isWarnable(msgId) {
   const stmt = db.prepare("SELECT * FROM messages WHERE number = ?");
-  cnost result = stmt.get(msgId);
+  const result = stmt.get(msgId);
 
   if (typeof(result) === "undefined") {
     return false;
