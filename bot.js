@@ -100,7 +100,7 @@ async function submitAnon(msg) {
                     true
                 );
                 if (messageToSend === -1) {
-                    replyTorMessageWithStatus(msg, 2011);
+                    replyTorMessageWithStatus(msg, 2014);
                     return;
                 }
                 messageToStore =
@@ -123,7 +123,7 @@ async function submitAnon(msg) {
                     params.slice(3, params.length)
                 );
                 if (messageToSend === -1) {
-                    replyTorMessageWithStatus(msg, 2011);
+                    replyTorMessageWithStatus(msg, 2014);
                     return;
                 }
                 messageToStore = reconstructMessage(params.slice(3, params.length));
@@ -150,7 +150,7 @@ async function submitAnon(msg) {
     }
 
     if (!isCool(messageToSend)) {
-        replyTorMessageWithStatus(msg, 2012);
+        replyTorMessageWithStatus(msg, 2016);
         handleTempBan(msg, anonId, 86400, "Hate speech");
         sendLogMessage(`User ${anonId} has been temp banned for saying ${msg}`);
         return;
@@ -365,10 +365,6 @@ function formatReply(replyNum, msgArray, isNsfw) {
     );
 }
 
-function concatRegex(regex1, regex2) {
-    return new RegExp(regex1.source + regex2.source);
-}
-
 function createMsgEmbed(title, content) {
     const msg = new discord.MessageEmbed()
         .setColor(3447003)
@@ -422,6 +418,15 @@ async function parseArguments(msg) {
                 break;
             case "slur":
                 handleSlurCommand(params, msg);
+                break;
+            case "warn":
+                handleWarnCommand(params, msg);
+                break;
+            case "warnlimit":
+                handleWarnLimitCommand(params, msg);
+                break;
+            case "wtd":
+                handleSetWarnTempbanDuration(params, msg);
                 break;
             default:
                 replyTorMessageWithStatus(msg, 2000);
@@ -487,8 +492,14 @@ function handleSlowmodeCommand(params, msg) {
 }
 
 function handleTempBan(msg, anonId, duration, reason) {
+
+    if (database.isBanned(anonId)) {
+        replyTorMessageWithStatus(msg, 2021);
+        return;
+    }
+
     let unbanTime = moment().utc();
-    unbanTime = moment(unbanTime).add(duration, "s");
+    unbanTime = moment(unbanTime).add(duration, "d");
 
     const DMChannelId = database.getDmChannel(anonId);
 
@@ -499,11 +510,11 @@ function handleTempBan(msg, anonId, duration, reason) {
         unbanTime.format("DD MM YYYY HH:mm:ss")
   );
   const banMsg =
-      reason + "\nUnban date in UTC: " + unbanTime.format("DD MM YYYY HH:mm:ss");
+      reason + "\nUnban date on UTC: " + unbanTime.format("MMMM Do YYYY, [at] h:mm a");
   replyTorMessageWithStatus(msg, 1005, banMsg);
   if (DMChannelId) {
       const dm = new discord.DMChannel(client, { id: DMChannelId });
-      dm.send("You have been temporarily banned.\nReason: " + banMsg);
+      dm.send(errors.getError(4000, banMsg));
   }
 }
 
@@ -528,6 +539,7 @@ function handleBanCommand(params, msg) {
             arg3,
             reconstructMessage(params.slice(4, params.length))
         );
+        database.clearWarnCount(anonId, metadata.blockReason.TEMPBAN);
         return;
     }
     // Permaban
@@ -535,15 +547,18 @@ function handleBanCommand(params, msg) {
         replyTorMessageWithStatus(msg, 2007);
         return;
     }
+
     reason = reconstructMessage(params.slice(3, params.length));
     database.setMessageBlocker(anonId, metadata.blockReason.PERMBAN, reason, "");
     replyTorMessageWithStatus(msg, 1006, reason);
+    database.clearWarnCount(anonId, metadata.blockReason.PERMBAN);
 
     if (DMChannelId) {
         const dm = new discord.DMChannel(client, { id: DMChannelId });
-        dm.send("You have been permanently banned.\nReason: " + reason);
+        dm.send(errors.getError(4001, reason));
     }
 }
+
 
 function handleUnbanCommand(params, msg) {
     const msgId = params[2];
@@ -565,8 +580,9 @@ function handleUnbanCommand(params, msg) {
 
     if (DMChannelId) {
         const dm = new discord.DMChannel(client, { id: DMChannelId });
-        dm.send("You have been unbanned.");
+        dm.send(errors.getError(4002));
     }
+
 }
 
 function handleSlurCommand(params, msg) {
@@ -577,10 +593,211 @@ function handleSlurCommand(params, msg) {
     reinitializeFilter();
 }
 
+function handleWarnCommand(params, msg) {
+    let reason = reconstructMessage(params.slice(3));
+    const msgId = params[2];
+
+    if (reason === "") {
+        reason = "No reason given";
+    }
+
+    if (params.length < 3 || !isNumeric(msgId) ) {
+        replyTorMessageWithStatus(msg, 2011);
+        return;
+    }
+
+    if (database.getTempbanWarnLimit() === -1 || database.getPermbanWarnLimit() === - 1 ||
+        database.getWarnTempbanDuration() === -1) {
+        replyTorMessageWithStatus(msg, 2017);
+        return;
+    }
+
+    const anonId = database.getAnonIdFromMsgId(msgId);
+
+    if (database.isBanned(anonId)) {
+        replyTorMessageWithStatus(msg, 2020);
+        return;
+    }
+
+    const DMChannelId = database.getDmChannel(anonId);
+    const warnResult = database.addWarn(msgId);
+    
+    if (warnResult === metadata.blockReason.TEMPBAN) {
+        const moderationSideBanReason = "Tempban warn limit reached";
+        let unbanTime = moment().utc();
+        unbanTime = moment(unbanTime).add(database.getWarnTempbanDuration(), "d");
+
+        database.setMessageBlocker(anonId, metadata.blockReason.TEMPBAN,
+            moderationSideBanReason, unbanTime.format("DD MM YYYY HH:mm:ss"));
+
+        if (DMChannelId) {
+            const dm = new discord.DMChannel(client, {id: DMChannelId});
+            const anonUserSideBanReason = `You are receiving a warning for sending message ${msgId}\n` +
+                                          `Reason: ${reason}\n` +
+                                          `You have now exceeded the limit on the number of warns users can receive ` +
+                                          `before being temporarily banned. Your ban will be lifted in ` +
+                                          `${database.getWarnTempbanDuration()} days.`
+            dm.send(anonUserSideBanReason);
+            database.clearWarnCount(anonId, metadata.blockReason.TEMPBAN);
+        }
+
+        replyTorMessageWithStatus(msg, 1008, msgId);
+        return;
+
+    } else if (warnResult === metadata.blockReason.PERMBAN) {
+        const moderationSideBanReason = "Permban warn limit reached";
+        database.setMessageBlocker(anonId, metadata.blockReason.PERMBAN, moderationSideBanReason, "");
+
+        if (DMChannelId) {
+            const dm = new discord.DMChannel(client, {id: DMChannelId});
+            const anonUserSideBanReason = `You are receiving a warning for sending message ${msgId}\n` +
+                                          `Reason: ${reason}\n` +
+                                          `You have now exceeded the limit on the number of warns users can receive ` +
+                                          `before being permanently banned. You are permanently banned from sending ` +
+                                          `anonymous messages.`
+
+            dm.send(anonUserSideBanReason);
+            database.clearWarnCount(anonId, metadata.blockReason.PERMBAN);
+        }
+
+        replyTorMessageWithStatus(msg, 1008, msgId);
+        return;
+
+    } else if (warnResult === -1) {
+        replyTorMessageWithStatus(msg, 2015);
+        return;
+    }
+
+    const tempWarnCount = database.getWarnCount(anonId, metadata.blockReason.TEMPBAN);
+    const permWarnCount = database.getWarnCount(anonId, metadata.blockReason.PERMBAN);
+
+    if (DMChannelId) {
+        const dm = new discord.DMChannel(client, { id: DMChannelId });
+        const warnsUntilTempban = database.getTempbanWarnLimit() - tempWarnCount;
+        const warnsUntilPermban = database.getPermbanWarnLimit() - permWarnCount;
+
+        let message = `You are receiving a warning for sending message ${msgId}\n` +
+                      `Reason: ${reason}\n`;
+
+        if (warnsUntilPermban > warnsUntilTempban) {
+            message += `You have ${warnsUntilTempban} warns left until you are temporarily banned from sending ` +
+                       `anonymous messages.\n`;
+        }
+
+        message += `You have ${warnsUntilPermban} warns left until you are permanently banned from sending anonymous ` +
+                   `messages.`
+
+        dm.send(message);
+        replyTorMessageWithStatus(msg, 1008, msgId);
+    }
+
+}
+
+function handleWarnLimitCommand(params, msg) {
+    if (params.length !== 4 || !isNumeric(params[2]) || !isNumeric(params[3])) {
+        replyTorMessageWithStatus(msg, 2012);
+        return;
+    }
+
+    const tempLimit = parseInt(params[2]);
+    const permLimit = parseInt(params[3]);
+
+    if (tempLimit === 0 || permLimit === 0) {
+        replyTorMessageWithStatus(msg, 2018);
+        return;
+    }
+
+    database.setWarnLimits(tempLimit, permLimit);
+    const message = `Tempban warn limit set  to ${tempLimit}\nPermban warn limit set to ${permLimit}`;
+    msg.channel.send(message);
+
+    const warnedUsersInfo= database.getWarnedUsersInfo();
+
+    const warnChangeAnnouncement = `The limits on the number of warns users can receive before being temporarily and ` +
+                                 `permanently banned has changed. The warn limit for temporary bans is now ` +
+                                 `${tempLimit} warns and the warn limit for permanent bans is now ${permLimit} ` +
+                                 `warns.\n\n`;
+
+    let DMChannelId;
+    let dm;
+    let response;
+    let anonId;
+
+    for (let i = 0; i < warnedUsersInfo.length; i++) {
+        anonId = warnedUsersInfo[i].anon_id;
+        DMChannelId = database.getDmChannel(anonId);
+        dm = new discord.DMChannel(client, { id: DMChannelId });
+
+        const tempCount = warnedUsersInfo[i].temp_count;
+        const permCount = warnedUsersInfo[i].perm_count;
+
+        if (!DMChannelId) {
+            continue;
+        }
+
+        if (warnedUsersInfo[i].perm_count >= permLimit) {
+            database.setMessageBlocker(anonId, metadata.blockReason.PERMBAN, "Permban warn limit reached", "");
+            database.clearWarnCount(anonId, metadata.blockReason.PERMBAN);
+
+            response = warnChangeAnnouncement +
+                      `Since you have have received a total of ${permCount} warns, you have been permanently banned ` +
+                      `from sending anonymous messages.`;
+
+        } else if (warnedUsersInfo[i].temp_count >= tempLimit) {
+            let unbanTime = moment().utc();
+            unbanTime = moment(unbanTime).add(database.getWarnTempbanDuration(), "days");
+
+            database.setMessageBlocker(anonId, metadata.blockReason.TEMPBAN,
+                "Tempban warn limit reached", unbanTime.format("DD MM YYYY HH:mm:ss"));
+            database.clearWarnCount(anonId, metadata.blockReason.TEMPBAN);
+
+            response = warnChangeAnnouncement +
+                      `Since you have have received ${tempCount} warns since your last temporary ban cycle ` +
+                      `started, you have been temporarily banned from sending anonymous messages. Your ban will be ` +
+                      `lifted in ${database.getWarnTempbanDuration()} days.`;
+        } else {
+            const warnsUntilTempban = tempLimit - tempCount;
+            const warnsUntilPermban = permLimit - permCount;
+
+            response = warnChangeAnnouncement +
+                      `After these changes:\n`;
+
+            if (warnsUntilPermban > warnsUntilTempban) {
+                response += `You have ${warnsUntilTempban} warns left until you are temporarily banned from sending ` +
+                            `anonymous messages.\n`;
+            }
+
+            response += `You have ${warnsUntilPermban} warns left until you are permanently banned from sending ` +
+                        `anonymous messages.`;
+        }
+        dm.send(response);
+    }
+}
+
+function handleSetWarnTempbanDuration(params, msg) {
+    if (params.length !== 3 || !isNumeric(params[2])) {
+        replyTorMessageWithStatus(msg, 2013);
+        return;
+    }
+
+    const days = parseInt(params[2]);
+    if (days === 0) {
+        replyTorMessageWithStatus(msg, 2019);
+        return;
+    }
+
+    database.setWarnTempbanDuration(days);
+    replyTorMessageWithStatus(msg, 1009, `${days} days`);
+}
+
 // Helpers
 
 function reconstructMessage(params) {
     return params.join(" ");
+}
+
+function concatRegex(regex1, regex2) {
+    return new RegExp(regex1.source + regex2.source);
 }
 
 function replyTorMessageWithStatus(msg, status, suffix, content) {

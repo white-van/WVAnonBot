@@ -22,9 +22,8 @@ function configureTimersAndCheckIfCanSend(msg) {
           error.errorCode = 3002;
           error.suffix =
             record.explanation +
-            "\nBan lifts in " +
-            dateOfUnblock.diff(now, "seconds") +
-            " seconds";
+            "\nYour ban lifts on " +
+            dateOfUnblock.format("MMMM Do YYYY,[ at ]h:mm a [(UTC time)]");
         } else {
           database.deleteMessageBlocker(encryptedUser);
         }

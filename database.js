@@ -73,6 +73,13 @@ function getMessageBlocker(encryptedUser) {
   return stmt.get(encryptedUser);
 }
 
+function isBanned(encrypedUser) {
+
+  const stmt = db.prepare("SELECT * FROM messageBlocker WHERE encryptedUserId = ?");
+  return typeof(stmt.get(encrypedUser)) !== "undefined";
+
+}
+
 function deleteMessageBlocker(encryptedUser) {
   const stmt = db.prepare(
       "DELETE FROM messageBlocker WHERE encryptedUserId = ?"
@@ -114,8 +121,8 @@ function addMessageAndGetNumber(msg) {
     messageNumber = result.number + 1;
   }
 
-  stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?, ?)");
-  stmt.run(messageNumber, msg, "", "0");
+  stmt = db.prepare("INSERT INTO messages VALUES (?, ?, ?, ?, ?)");
+  stmt.run(messageNumber, msg, "", "0", "0");
 
   return messageNumber;
 }
@@ -160,31 +167,16 @@ function getMessageUrlByNumber(num) {
 }
 
 function messageNumberIsRepliable(num) {
-  let stmt = db.prepare(
-      "SELECT * FROM messages WHERE number=(SELECT MIN(number) from messages)"
-  );
-  let result = stmt.get();
-  if (!result) {
-    return "";
-  }
-  const firstRepliableMessageNumber = result.number;
 
-  stmt = db.prepare(
-      "SELECT * FROM messages WHERE number=(SELECT MAX(number) from messages)"
-  );
-  result = stmt.get();
-  const lastRepliableMessageNumber = result.number;
+  const stmt = db.prepare("SELECT * FROM messages WHERE number = ?");
+  const result = stmt.get(num);
 
-  // Return false if message number is out of bounds
-  if (num < firstRepliableMessageNumber || num > lastRepliableMessageNumber) {
+  if (typeof(result) === "undefined") {
     return false;
   }
 
-  stmt = db.prepare("SELECT * FROM messages WHERE number= ?");
-  result = stmt.get(num);
-
   // Return false if message has been deleted
-  if (parseInt(result.is_deleted) === 1) {
+  if (result.is_deleted === 1) {
     return false
   }
 
@@ -256,6 +248,118 @@ function setDmChannel(anonId, channelId) {
   stmt.run(channelId, anonId);
 }
 
+function addWarn(msgId) {
+  if (!isWarnable(msgId)) {
+    return -1;
+  }
+
+  const anonId = getAnonIdFromMsgId(msgId);
+  let stmt = db.prepare("SELECT * FROM warns WHERE anon_id = ?");
+  const result = stmt.get(anonId);
+
+  if (typeof(result) === "undefined") {
+    stmt = db.prepare("INSERT INTO warns VALUES(?, ?, ?)");
+    stmt.run(anonId, "1", "1");
+
+    stmt = db.prepare("UPDATE messages SET received_warn = 1 WHERE number = ?");
+    stmt.run(msgId);
+
+    return;
+  }
+
+  stmt = db.prepare("UPDATE warns SET temp_count = temp_count + 1, " +
+      "perm_count = perm_count + 1 WHERE anon_id = ?");
+  stmt.run(anonId);
+
+  stmt = db.prepare("SELECT temp_count FROM warns WHERE anon_id = ?");
+  const tempCount = stmt.get(anonId).temp_count;
+  stmt = db.prepare("SELECT perm_count FROM warns WHERE anon_id = ?");
+  const permCount = stmt.get(anonId).perm_count;
+
+  stmt = db.prepare("UPDATE messages SET received_warn = 1 WHERE number = ?");
+  stmt.run(msgId);
+
+  if (permCount >= getPermbanWarnLimit()) {
+    return metadata.blockReason.PERMBAN;
+  }
+
+  if (tempCount >= getTempbanWarnLimit()) {
+    return metadata.blockReason.TEMPBAN;
+  }
+
+  return null;
+}
+
+function isWarnable(msgId) {
+  const stmt = db.prepare("SELECT * FROM messages WHERE number = ?");
+  const result = stmt.get(msgId);
+
+  if (typeof(result) === "undefined") {
+    return false;
+  }
+
+  if (result.received_warn === 1) {
+    return false;
+  }
+
+  return true;
+}
+
+function getWarnCount(anonId, banType) {
+  let stmt;
+  if (banType === metadata.blockReason.TEMPBAN) {
+    stmt = db.prepare("SELECT temp_count FROM warns WHERE anon_id = ?");
+    return stmt.get(anonId).temp_count;
+  } else if (banType === metadata.blockReason.PERMBAN) {
+    stmt = db.prepare("SELECT perm_count FROM warns WHERE anon_id = ?");
+    return stmt.get(anonId).perm_count;
+  }
+
+  return -1;
+}
+
+function clearWarnCount(anonId, banType) {
+  let stmt;
+
+  if (banType === metadata.blockReason.TEMPBAN) {
+    stmt = db.prepare("UPDATE warns SET temp_count = 0 WHERE anon_id = ?");
+    stmt.run(anonId);
+  } else if (banType === metadata.blockReason.PERMBAN) {
+    stmt = db.prepare("UPDATE warns SET temp_count = 0, perm_count = 0 WHERE anon_id = ?");
+    stmt.run(anonId);
+  }
+}
+
+function setWarnLimits(tempLimit, permLimit) {
+  const stmt = db.prepare("UPDATE warnSettings SET tempban_limit = ?, permban_limit = ? WHERE rownum = 1");
+  stmt.run(tempLimit, permLimit);
+}
+
+function setWarnTempbanDuration(duration) {
+  const stmt = db.prepare("UPDATE warnSettings SET tempban_duration = ? WHERE rownum = 1");
+  stmt.run(duration);
+}
+
+function getTempbanWarnLimit() {
+  const stmt = db.prepare("SELECT * FROM warnSettings");
+  return stmt.get().tempban_limit;
+}
+
+function getPermbanWarnLimit() {
+  const stmt = db.prepare("SELECT * FROM warnSettings");
+  return stmt.get().permban_limit;
+}
+
+function getWarnTempbanDuration() {
+  const stmt = db.prepare("SELECT * FROM warnSettings");
+  return stmt.get().tempban_duration;
+}
+
+function getWarnedUsersInfo() {
+  const stmt = db.prepare("SELECT * FROM warns");
+  return stmt.all();
+}
+
 module.exports = {
   getOrSetEncryptor,
   setChannelDestinations,
@@ -265,6 +369,7 @@ module.exports = {
   setMessageBlocker,
   getMessageBlocker,
   getBanList,
+  isBanned,
   deleteMessageBlocker,
   deleteAllSlowdowns,
   addMessageAndGetNumber,
@@ -278,6 +383,16 @@ module.exports = {
   insertSlur,
   getDmChannel,
   setDmChannel,
+  addWarn,
+  isWarnable,
+  getWarnCount,
+  clearWarnCount,
+  setWarnLimits,
+  setWarnTempbanDuration,
+  getTempbanWarnLimit,
+  getPermbanWarnLimit,
+  getWarnTempbanDuration,
+  getWarnedUsersInfo,
 };
 
 // Initial setup
@@ -321,16 +436,19 @@ function initializeTables() {
   // The code that created the messageCounter table if it didn't already exist was deleted
 
   // Message number, content, and url
+
   stmt = db.prepare(
       "CREATE TABLE IF NOT EXISTS messages (number INTEGER PRIMARY KEY, " +
-      "message_content TEXT NOT NULL, message_url TEXT, is_deleted INTEGER)"
+      "message_content TEXT NOT NULL, message_url TEXT, is_deleted INTEGER, received_warn INTEGER)"
   );
   stmt.run();
   try {
+
     stmt = db.prepare(
-      "ALTER TABLE messages ADD COLUMN is_deleted INTEGER"
+      "ALTER TABLE messages ADD COLUMN received_warn INTEGER"
     );
     stmt.run();
+
   } catch (e) {
       // Nothing to upgrade
   }
@@ -343,6 +461,30 @@ function initializeTables() {
     "CREATE TABLE IF NOT EXISTS dmChannels (channelId TEXT, anonId TEXT)"
   );
   stmt.run();
+
+  // Table for warns
+  stmt = db.prepare(
+      "CREATE TABLE IF NOT EXISTS warns (anon_id TEXT NOT NULL, " +
+      "temp_count INTEGER NOT NULL, perm_count INTEGER NOT NULL)"
+  );
+  stmt.run();
+
+  // Table for warn settings variables
+  stmt = db.prepare(
+      "CREATE TABLE IF NOT EXISTS warnSettings (rownum INTEGER, " +
+      "tempban_limit INTEGER, permban_limit INTEGER, tempban_duration INTEGER)"
+  );
+  stmt.run();
+
+  // Initialize with -1's
+  stmt = db.prepare("SELECT * FROM warnSettings");
+  const result = stmt.get();
+
+  if (typeof(result) === "undefined") {
+    stmt = db.prepare("INSERT INTO warnSettings VALUES (1, -1, -1, -1)");
+    stmt.run();
+  }
+
 }
 
 initializeTables();
