@@ -1,8 +1,9 @@
 # Changelog
 
-## V1.6 - June 2nd, 2021
+## V1.6 - June 20th, 2021
 
 1. Introduced a warnings feature that allows admins and mods to warn users for sending inappropriate messages.
+2. Fixed incorrect ban time and DM notification format for hate speech filter
 
 ## V1.5 - Apr 29th, 2021
 
