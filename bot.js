@@ -150,9 +150,9 @@ async function submitAnon(msg) {
     }
 
     if (!isCool(messageToSend)) {
-        replyTorMessageWithStatus(msg, 2016);
-        handleTempBan(msg, anonId, 86400, "Hate speech");
+        handleTempBan(msg, anonId, 1, "Hate speech (automatic filter)", false);
         sendLogMessage(`User ${anonId} has been temp banned for saying ${msg}`);
+        replyTorMessageWithStatus(msg, 2016);
         return;
     }
 
@@ -491,7 +491,7 @@ function handleSlowmodeCommand(params, msg) {
     );
 }
 
-function handleTempBan(msg, anonId, duration, reason) {
+function handleTempBan(msg, anonId, duration, reason, sendLogResponse = true) {
 
     if (database.isBanned(anonId)) {
         replyTorMessageWithStatus(msg, 2021);
@@ -509,9 +509,14 @@ function handleTempBan(msg, anonId, duration, reason) {
         reason,
         unbanTime.format("DD MM YYYY HH:mm:ss")
   );
+
   const banMsg =
-      reason + "\nUnban date on UTC: " + unbanTime.format("MMMM Do YYYY, [at] h:mm a");
-  replyTorMessageWithStatus(msg, 1005, banMsg);
+          reason + "\nUnban date on UTC: " + unbanTime.format("MMMM Do YYYY, [at] h:mm a");
+
+  if (sendLogResponse) {
+      replyTorMessageWithStatus(msg, 1005, banMsg);
+  }
+
   if (DMChannelId) {
       const dm = new discord.DMChannel(client, { id: DMChannelId });
       dm.send(errors.getError(4000, banMsg));
