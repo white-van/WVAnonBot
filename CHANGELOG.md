@@ -13,7 +13,6 @@
 4. Improved !help command for better readability
 5. Made the reply command accept the pound sign before the message number
 
-
 ## V1.4 - Apr 21st, 2021
 
 1. Added a banlist command that displays all currently banned users

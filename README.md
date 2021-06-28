@@ -19,10 +19,12 @@ As of April 30th, 2021, 2100 anonymous messages have been sent!
 - Display rules
 
 ## Using WVAnonBot
+
 WVAnonBot is completely open-source and free for others to use. All that we ask is that you:
-* Give credit to White Van
-* Do not try to claim credit as your own
-* Do not add features that would put the user's privacy at risk (i.e. storing discord ids)
+
+- Give credit to White Van
+- Do not try to claim credit as your own
+- Do not add features that would put the user's privacy at risk (i.e. storing discord ids)
 
 ## 🚀 Getting Started
 
@@ -44,7 +46,7 @@ Requires: <a href="https://nodejs.org/en/">Node.js</a>
 5. Create three channels in your Discord server: one for logs, one for anon-messages, one for deep-talks.
    You will need administrator privileges in your discord server to set the channels.
 
-6. Now you need to let the bot know which channels are which. To set all channels at once, use `!anon set #[anon-msgs] #[deep-talks] #[log-channel] `. To set channels individually, use the 
+6. Now you need to let the bot know which channels are which. To set all channels at once, use `!anon set #[anon-msgs] #[deep-talks] #[log-channel] `. To set channels individually, use the
    following commands:
 
 ```

@@ -71,7 +71,7 @@ const errorMap = {
     .addFields({
       name: "Messaging commands",
       value:
-        '\nThe nsfw argument is **optional**. If `nsfw` is included, the message will be wrapped in spoiler tags.\n\n' +
+        "\nThe nsfw argument is **optional**. If `nsfw` is included, the message will be wrapped in spoiler tags.\n\n" +
         "• `!send (nsfw) your_message`\n" +
         "Description: sends a message to the anonymous chat\n" +
         "Examples:    !send hello, !send nsfw hello\n\n" +
