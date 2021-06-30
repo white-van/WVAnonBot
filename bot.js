@@ -29,21 +29,21 @@ client.on("message", (msg) => {
 });
 
 client.on("messageDelete", (msg) => {
-  const anonChannelId = database.getChannelDestination(
-    metadata.channels.ANONCHANNEL
-  );
-  const deepChannelId = database.getChannelDestination(
-    metadata.channels.DEEPTALKS
-  );
 
-  // If an anon message is deleted, make it unrepliable
-  if (
-    msg.author.id === client.user.id &&
-    (msg.channel.id === anonChannelId || msg.channel.id === deepChannelId)
-  ) {
-    const messageNum = parseInt(msg.embeds[0].footer.text.slice(1));
-    database.setMessageAsDeleted(messageNum);
-  }
+    const anonChannelId = database.getChannelDestination(metadata.channels.ANONCHANNEL);
+    const deepChannelId = database.getChannelDestination(metadata.channels.DEEPTALKS);
+    const confessionsChannelId = database.getChannelDestination(metadata.channels.CONFESSIONS)
+
+    // If an anon message is deleted, make it unrepliable
+    if (msg.author.id === client.user.id
+        && (msg.channel.id === anonChannelId
+        || msg.channel.id === deepChannelId || msg.channel.id === confessionsChannelId)) {
+
+        const messageNum = parseInt(msg.embeds[0].footer.text.slice(1));
+        database.setMessageAsDeleted(messageNum);
+
+    }
+
 });
 
 // Central functionality
@@ -59,26 +59,31 @@ async function submitAnon(msg) {
 
   const params = msg.content.split(" ");
   switch (params[0]) {
-    case "!help":
-      replyTorMessageWithStatus(msg, 1);
-      return;
-    case "!rules":
-      replyTorMessageWithStatus(msg, 2);
-      return;
-    case "!send":
-      destinationChannel = database.getChannelDestination(
-        metadata.channels.ANONCHANNEL
-      );
-      break;
-    case "!send-deep":
-      destinationChannel = database.getChannelDestination(
-        metadata.channels.DEEPTALKS
-      );
-      break;
-    default:
-      replyTorMessageWithStatus(msg, 2009);
-      return;
-  }
+        case "!help":
+            replyTorMessageWithStatus(msg, 1);
+            return;
+        case "!rules":
+            replyTorMessageWithStatus(msg, 2);
+            return;
+        case "!send":
+            destinationChannel = database.getChannelDestination(
+                metadata.channels.ANONCHANNEL
+            );
+            break;
+        case "!send-deep":
+            destinationChannel = database.getChannelDestination(
+                metadata.channels.DEEPTALKS
+            );
+            break;
+        case "!confess":
+            destinationChannel = database.getChannelDestination(
+                metadata.channels.CONFESSIONS
+            );
+            break;
+        default:
+            replyTorMessageWithStatus(msg, 2010);
+            return;
+    }
 
   // No message provided to send
   if (params.length < 2) {
@@ -442,31 +447,34 @@ function setChannel(channelId, channel, msg, offset) {
 }
 
 function handleSetCommand(params, msg) {
-  if (params.length === 5) {
-    const anonChannelId = params[2] ? params[2].replace(/\D/g, "") : "";
-    const deepChannelId = params[3] ? params[3].replace(/\D/g, "") : "";
-    const logsChannelId = params[4] ? params[4].replace(/\D/g, "") : "";
-    setChannel(anonChannelId, metadata.channels.ANONCHANNEL, msg, 1);
-    setChannel(deepChannelId, metadata.channels.DEEPTALKS, msg, 2);
-    setChannel(logsChannelId, metadata.channels.ANONLOGS, msg, 0);
-    return;
-  }
+    if (params.length === 5) {
+        const anonChannelId = params[2] ? params[2].replace(/\D/g, "") : "";
+        const deepChannelId = params[3] ? params[3].replace(/\D/g, "") : "";
+        const logsChannelId = params[4] ? params[4].replace(/\D/g, "") : "";
+        setChannel(anonChannelId, metadata.channels.ANONCHANNEL, msg, 1);
+        setChannel(deepChannelId, metadata.channels.DEEPTALKS, msg, 2);
+        setChannel(logsChannelId, metadata.channels.ANONLOGS, msg, 0);
+        return;
+    }
 
-  const channelId = params[3] ? params[3].replace(/\D/g, "") : "";
-  switch (params[2]) {
-    case "log":
-      setChannel(channelId, metadata.channels.ANONLOGS, msg, 0);
-      break;
-    case "anon":
-      setChannel(channelId, metadata.channels.ANONCHANNEL, msg, 1);
-      break;
-    case "deeptalks":
-      setChannel(channelId, metadata.channels.DEEPTALKS, msg, 2);
-      break;
-    default:
-      replyTorMessageWithStatus(msg, 2001);
-      break;
-  }
+    const channelId = params[3] ? params[3].replace(/\D/g, "") : "";
+    switch (params[2]) {
+        case "log":
+            setChannel(channelId, metadata.channels.ANONLOGS, msg, 0);
+            break;
+        case "anon":
+            setChannel(channelId, metadata.channels.ANONCHANNEL, msg, 1);
+            break;
+        case "deeptalks":
+            setChannel(channelId, metadata.channels.DEEPTALKS, msg, 2);
+            break;
+        case "confessions":
+            setChannel(channelId, metadata.channels.CONFESSIONS, msg, 9000);
+            break;
+        default:
+            replyTorMessageWithStatus(msg, 2001);
+            break;
+    }
 }
 
 function handleSlowmodeCommand(params, msg) {

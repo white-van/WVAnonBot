@@ -16,6 +16,14 @@ function getOrSetEncryptor(bufferIv) {
 }
 
 function setChannelDestinations(colName, channelId) {
+  if (colName === 'confessionsChannel')
+  {
+    const stmt = db.prepare(
+      "UPDATE confessionsdest SET channel = " + channelId
+    );
+    stmt.run();
+    return;
+  }
   const stmt = db.prepare(
     "UPDATE channelDestinations SET " + colName + " = " + channelId
   );
@@ -23,8 +31,15 @@ function setChannelDestinations(colName, channelId) {
 }
 
 function getChannelDestination(colName) {
+  if (colName === 'confessionsChannel')
+  {
+    const stmt = db.prepare(
+      "SELECT channel AS channelID FROM confessionsdest"
+    );
+    return stmt.get().channelID;
+  }
   const stmt = db.prepare(
-    "SELECT " + colName + " AS channelID FROM channelDestinations"
+      "SELECT " + colName + " AS channelID FROM channelDestinations"
   );
   return stmt.get().channelID;
 }
@@ -485,6 +500,14 @@ function initializeTables() {
     stmt = db.prepare("INSERT INTO warnSettings VALUES (1, -1, -1, -1)");
     stmt.run();
   }
+
+  // Confessions channel. Lazy bones (again)
+  stmt = db.prepare("CREATE TABLE IF NOT EXISTS confessionsdest (channel TEXT)");
+  stmt.run();
+
+  stmt = db.prepare("INSERT INTO confessionsdest VALUES ('')");
+  stmt.run();
+
 }
 
 initializeTables();
