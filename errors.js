@@ -80,7 +80,11 @@ const errorMap = {
         "Examples: !send-deep hello, !send-deep nsfw hello\n\n" +
         "• `!send/send-deep (nsfw) reply msg_number_here your_message`\n" +
         "Description: Replies to the message with the specified message number\n" +
-        "Examples: !send reply 123 hello, !send-deep nsfw reply 123 hello\n",
+        "Examples: !send reply 123 hello, !send-deep nsfw reply 123 hello\n\n" +
+        "**Monthly Special: Confessions Channel**\n" +
+        "• `!confess (nsfw) your_message`\n" +
+        "Description: Sends a message to the confessions channel\n" +
+        "Examples: !confess hello, !confess nsfw hello" ,
     })
     .setTimestamp(),
   // Rules for user
