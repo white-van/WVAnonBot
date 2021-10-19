@@ -32,12 +32,12 @@ client.on("messageDelete", (msg) => {
 
     const anonChannelId = database.getChannelDestination(metadata.channels.ANONCHANNEL);
     const deepChannelId = database.getChannelDestination(metadata.channels.DEEPTALKS);
-    const confessionsChannelId = database.getChannelDestination(metadata.channels.CONFESSIONS)
+    const sadstoriesChannelId = database.getChannelDestination(metadata.channels.SADSTORIES)
 
     // If an anon message is deleted, make it unrepliable
     if (msg.author.id === client.user.id
         && (msg.channel.id === anonChannelId
-        || msg.channel.id === deepChannelId || msg.channel.id === confessionsChannelId)) {
+        || msg.channel.id === deepChannelId || msg.channel.id === sadstoriesChannelId)) {
 
         const messageNum = parseInt(msg.embeds[0].footer.text.slice(1));
         database.setMessageAsDeleted(messageNum);
@@ -75,9 +75,9 @@ async function submitAnon(msg) {
                 metadata.channels.DEEPTALKS
             );
             break;
-        case "!confess":
+        case "!sad":
             destinationChannel = database.getChannelDestination(
-                metadata.channels.CONFESSIONS
+                metadata.channels.SADSTORIES
             );
             break;
         default:
@@ -468,8 +468,8 @@ function handleSetCommand(params, msg) {
         case "deeptalks":
             setChannel(channelId, metadata.channels.DEEPTALKS, msg, 2);
             break;
-        case "confessions":
-            setChannel(channelId, metadata.channels.CONFESSIONS, msg, 9000);
+        case "sadstories":
+            setChannel(channelId, metadata.channels.SADSTORIES, msg, 9000);
             break;
         default:
             replyTorMessageWithStatus(msg, 2001);

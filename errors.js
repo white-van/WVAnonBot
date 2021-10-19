@@ -81,10 +81,10 @@ const errorMap = {
         "• `!send/send-deep (nsfw) reply msg_number_here your_message`\n" +
         "Description: Replies to the message with the specified message number\n" +
         "Examples: !send reply 123 hello, !send-deep nsfw reply 123 hello\n\n" +
-        "**Monthly Special: Confessions Channel**\n" +
-        "• `!confess (nsfw) your_message`\n" +
-        "Description: Sends a message to the confessions channel\n" +
-        "Examples: !confess hello, !confess nsfw hello" ,
+        "**Monthly Special: Sad Stories Channel**\n" +
+        "• `!sad (nsfw) your_message`\n" +
+        "Description: Sends a message to the sad stories channel\n" +
+        "Examples: !sad hello, !sad nsfw hello" ,
     })
     .setTimestamp(),
   // Rules for user
@@ -159,10 +159,10 @@ const errorMap = {
   4000: "You have been temporarily banned.\nReason: ",
   4001: "You have been permanently banned.\nReason: ",
   4002: "You have been unbanned. Please remember to follow the rules of the server when sending anonymous messages.",
-  // Confessions
-  10000: "Confessions channel set successfully. Make sure the bot can actually see the channel in discord with its perms! (check the sidebar while in the channel. "
+  // Sad Stories
+  10000: "Sad stories channel set successfully :( Make sure the bot can actually see the channel in discord with its perms! (check the sidebar while in the channel. "
     + "If you see the bot, you're good. If not, give it perms in discord to be able to access it.)",
-  11002: "Confessions channel provided is an invalid channel."
+  11002: "Here's a sad story for you: the sad stories channel provided is an invalid channel :( "
 };
 
 module.exports = {
