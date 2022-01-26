@@ -365,6 +365,50 @@ function getWarnedUsersInfo() {
   return stmt.all();
 }
 
+function setPurgatoryTimer(days) {
+  const stmt = db.prepare(
+    "UPDATE altPreventionConfig SET numOfDays = ?"
+  );
+  stmt.run(days);
+}
+
+function getPurgatoryTimer() {
+  const stmt = db.prepare("SELECT * FROM altPreventionConfig");
+  return stmt.get().numOfDays;
+}
+
+function insertIntoPurgatory(anonId, date) {
+  let stmt = db.prepare("SELECT anon_id FROM userPurgatory WHERE anon_id = ?");
+  if (stmt.get(anonId)) {
+    stmt = db.prepare("UPDATE userPurgatory SET date = ? WHERE anon_id = ?");
+    stmt.run(date, anonId);
+    return;
+  }
+  stmt = db.prepare("INSERT INTO userPurgatory VALUES (?, ?)");
+  stmt.run(anonId, date);
+}
+
+function getFromPurgatory(anonId) {
+  const stmt = db.prepare("SELECT date FROM userPurgatory WHERE anon_id = ?");
+  const result = stmt.get(anonId);
+  if (typeof result === "undefined") {
+    // User not in purgatory. Either did their time, or grandfathered in. Can post
+    return null;
+  }
+  return result.date;
+}
+
+function deleteFromPurgatory(anonId) {
+  if (getFromPurgatory(anonId) == null) {
+    return false
+  } 
+  const stmt = db.prepare(
+    "DELETE FROM userPurgatory WHERE anon_id = ?"
+  );
+  stmt.run(anonId);
+  return true;
+}
+
 module.exports = {
   getOrSetEncryptor,
   setChannelDestinations,
@@ -398,6 +442,11 @@ module.exports = {
   getPermbanWarnLimit,
   getWarnTempbanDuration,
   getWarnedUsersInfo,
+  setPurgatoryTimer,
+  getPurgatoryTimer,
+  insertIntoPurgatory,
+  getFromPurgatory,
+  deleteFromPurgatory
 };
 
 // Initial setup
@@ -479,12 +528,34 @@ function initializeTables() {
 
   // Initialize with -1's
   stmt = db.prepare("SELECT * FROM warnSettings");
-  const result = stmt.get();
+  let result = stmt.get();
 
   if (typeof result === "undefined") {
     stmt = db.prepare("INSERT INTO warnSettings VALUES (1, -1, -1, -1)");
     stmt.run();
   }
+
+  // Table to hold days for how long a user cannot post. Overkill? Maybe
+  // If you think so, join the dev team and come revamp this ;)
+  stmt = db.prepare(
+    "CREATE TABLE IF NOT EXISTS altPreventionConfig (numOfDays INTEGER)"
+  );
+  stmt.run();
+
+  // Initialize with 7 days
+  stmt = db.prepare("SELECT * FROM altPreventionConfig");
+  result = stmt.get();
+
+  if (typeof result === "undefined") {
+    stmt = db.prepare("INSERT INTO altPreventionConfig VALUES (7)");
+    stmt.run();
+  }
+
+  // Table to hold users that are not able to post in anon due to little time spent in server
+  stmt = db.prepare(
+    "CREATE TABLE IF NOT EXISTS userPurgatory (anon_id TEXT NOT NULL, date TEXT NOT NULL)"
+  );
+  stmt.run();
 }
 
 initializeTables();

@@ -1,16 +1,23 @@
 const discord = require("discord.js");
 const moment = require("moment");
-const client = new discord.Client();
+const intents = ["GUILD_MEMBERS", "GUILD_MESSAGES", "DIRECT_MESSAGES", "GUILDS"];
+const client = new discord.Client({intents: intents, ws:{intents: intents}});
 const auth = require("./auth.json");
 const encryptor = require("./encryptor.js");
 const errors = require("./errors.js");
 const database = require("./database.js");
 const metadata = require("./metadata.js");
 const timerhandler = require("./timerhandler.js");
+
 // Hooks
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
   client.user.setActivity("!help");
+});
+
+client.on('guildMemberAdd', member => {
+  const anonId = encryptor.encrypt(member.id);
+  timerhandler.addPurgatoryUser(anonId);
 });
 
 client.on("message", (msg) => {
@@ -78,6 +85,12 @@ async function submitAnon(msg) {
     default:
       replyTorMessageWithStatus(msg, 2009);
       return;
+  }
+
+  // Can the user even post in normal chat?
+  if (params[0] !== "!send-deep" && isInPurgatory(anonId)) {
+    replyTorMessageWithStatus(msg, 5000);
+    return;
   }
 
   // No message provided to send
@@ -190,6 +203,10 @@ async function submitAnon(msg) {
     value: destinationChannelObj.name,
   });
   client.channels.cache.get(anonLogsChannel).send(msgEmbed);
+}
+
+function isInPurgatory(anonId) {
+  return !timerhandler.rescueFromPurgatory(anonId);
 }
 
 function isValidReplyNumber(param) {
@@ -423,6 +440,12 @@ async function parseArguments(msg) {
         break;
       case "wtd":
         handleSetWarnTempbanDuration(params, msg);
+        break;
+      case "daysBeforePosting":
+        handleSetDaysBeforePosting(params, msg);
+        break;
+      case "bypassAltRestriction":
+        handleBypassAltRestriction(params, msg);
         break;
       default:
         replyTorMessageWithStatus(msg, 2000);
@@ -817,6 +840,32 @@ function handleSetWarnTempbanDuration(params, msg) {
   replyTorMessageWithStatus(msg, 1009, `${days} days`);
 }
 
+function handleSetDaysBeforePosting(params, msg) {
+  if (params.length !== 3
+    || !isNumeric(params[2])
+    || !(parseInt(params[2] >= 0) && parseInt(params[2]) <= 90)) {
+    replyTorMessageWithStatus(msg, 2022);
+    return;
+  }
+  database.setPurgatoryTimer(parseInt(params[2]));
+  replyTorMessageWithStatus(msg, 1010, `${parseInt(params[2])} days`);
+}
+
+function handleBypassAltRestriction(params, msg) {
+  if (params.length !== 3) {
+    replyTorMessageWithStatus(msg, 2023);
+    return;
+  }
+  const anonId = encryptor.encrypt(params[2]);
+  const success = database.deleteFromPurgatory(anonId);
+  if (success) {
+    replyTorMessageWithStatus(msg, 1011);
+  }
+  else {
+    replyTorMessageWithStatus(msg, 2024);
+  }
+}
+
 // Helpers
 
 function reconstructMessage(params) {
@@ -841,17 +890,6 @@ function replyTorMessageWithStatus(msg, status, suffix, content) {
   } else {
     msg.channel.messages.channel.send(errors.getError(status, suffix));
   }
-}
-
-function sendLogMessage(msg) {
-  const anonLogsChannel = database.getChannelDestination(
-    metadata.channels.ANONLOGS
-  );
-
-  const msgEmbed = new discord.MessageEmbed()
-    .setDescription(msg)
-    .setColor(3447003);
-  client.channels.cache.get(anonLogsChannel).send(msgEmbed);
 }
 
 function canConfigure(msg, allowedRoles) {

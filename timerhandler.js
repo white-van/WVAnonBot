@@ -71,6 +71,31 @@ function addSlowmodeTimer(msg, encryptedUser) {
   );
 }
 
+function addPurgatoryUser(anonId) {
+  const now = moment().utc();
+  database.insertIntoPurgatory(anonId, now.format("DD MM YYYY HH:mm:ss"));
+}
+
+function rescueFromPurgatory(anonId) {
+  const purgatoryTimerRaw = database.getFromPurgatory(anonId);
+  if (purgatoryTimerRaw == null) {
+    // Dobby is a free man
+    return true;
+  }
+  let purgatoryTimer = moment.utc(purgatoryTimerRaw, "DD MM YYYY HH:mm:ss")
+  const daysToAdd = database.getPurgatoryTimer();
+  const now = moment().utc();
+  purgatoryTimer = moment(purgatoryTimer).add(daysToAdd, "d");
+
+  if (now.isBefore(purgatoryTimer)) {
+    return false;
+  }
+  database.deleteFromPurgatory(anonId);
+  return true;
+}
+
 module.exports = {
   configureTimersAndCheckIfCanSend,
+  addPurgatoryUser,
+  rescueFromPurgatory
 };
