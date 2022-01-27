@@ -54,6 +54,16 @@ const errorMap = {
         value:
           "• `!anon slur word`\n" +
           "Description: Adds a slur to the block list",
+      },
+      {
+        name: "Alt Prevention",
+        value:
+          "• `!anon daysBeforePosting [daycount between 0-90 inclusive]`\n" +
+          "Description: Set the num of days a user has to be in the server before being able to use anon\n" +
+          "daycount parameter can be set anywhere from 0 to 90. Contact a dev if you want the 90 day limit increased\n" +
+          "deep-talks does not have this restriction. Users can always post there\n\n" +
+          "• `!anon bypassAltRestriction [userId]`\n" +
+          "Description: Allow a user to post, without being subject to the alt prevention system of the bot"
       }
     )
     .setTimestamp(),
@@ -112,6 +122,8 @@ const errorMap = {
   1007: "Following anon user was unbanned: ",
   1008: "User was warned for sending message ",
   1009: "Warn tempban duration set to ",
+  1010: "Days before a user can post in anon is set to ",
+  1011: "Provided user can now post in the main anon chat, regardless of alt restrictions",
   // Input configuration problems
   2000: "Command unrecognized. Run !anon help for all available commands",
   2001: "Nothing provided after set, or the channel target was incorrect. Run !anon help for all available options",
@@ -146,6 +158,9 @@ const errorMap = {
   2019: "The warnings tempban duration must be greater than 0",
   2020: "The user who sent this message is currently banned and consequently cannot receive warns.",
   2021: "User is already banned from sending anonymous messages",
+  2022: "Improper input for daysBeforePosting. Use: !anon daysBeforePosting [day count between 0-90 inclusive]",
+  2023: "Improver input for bypassAltRestriction. Use: !anon bypassAltRestriction [userId]",
+  2024: "Provided userid was not found as being locked by the alt protection. Did you pass the right ID? Are they actually locked?",
   // Message blocks
   3000: "Slowmode is active. Try sending in ",
   3001: "You've sent too many messages within a short timeframe. Try again in ",
@@ -155,6 +170,10 @@ const errorMap = {
   4000: "You have been temporarily banned.\nReason: ",
   4001: "You have been permanently banned.\nReason: ",
   4002: "You have been unbanned. Please remember to follow the rules of the server when sending anonymous messages.",
+  // Alt prevention
+  5000: "Your account is too fresh on the server to be able to post via anon. Please try again another day\n" +
+    "If you think you can make a case for posting before the time limit is up, contact an admin\n" +
+    "Please note that deep-talks does not have this restriction for anon"
 };
 
 module.exports = {
