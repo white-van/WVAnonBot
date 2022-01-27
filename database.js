@@ -409,6 +409,22 @@ function deleteFromPurgatory(anonId) {
   return true;
 }
 
+function swapAndReturnLockdownStatus() {
+  let stmt = db.prepare("SELECT anon_locked FROM configuration");
+  let lockdownStatus = 0;
+  if (stmt.get().anon_locked === 0) {
+    lockdownStatus = 1;
+  }
+  stmt = db.prepare("UPDATE configuration SET anon_locked = ?");
+  stmt.run(lockdownStatus);
+  return lockdownStatus;
+}
+
+function getLockdownStatus() {
+  const stmt = db.prepare("SELECT anon_locked FROM configuration");
+  return stmt.get().anon_locked;
+}
+
 module.exports = {
   getOrSetEncryptor,
   setChannelDestinations,
@@ -446,7 +462,9 @@ module.exports = {
   getPurgatoryTimer,
   insertIntoPurgatory,
   getFromPurgatory,
-  deleteFromPurgatory
+  deleteFromPurgatory,
+  swapAndReturnLockdownStatus,
+  getLockdownStatus
 };
 
 // Initial setup
@@ -478,8 +496,21 @@ function initializeTables() {
       " TEXT)"
   );
   stmt.run();
-  stmt = db.prepare("INSERT INTO configuration VALUES (0, 0)");
-  stmt.run();
+  try {
+    stmt = db.prepare("INSERT INTO configuration VALUES (0, 0)");
+    stmt.run();
+  } catch (e) {
+    // Nothing to upgrade
+  }
+
+  try {
+    stmt = db.prepare("ALTER TABLE configuration ADD COLUMN anon_locked INTEGER");
+    stmt.run();
+    stmt = db.prepare("UPDATE configuration SET anon_locked = 0");
+    stmt.run();
+  } catch (e) {
+    // Nothing to upgrade
+  }
 
   // Message blockers
   stmt = db.prepare(
