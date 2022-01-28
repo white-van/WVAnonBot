@@ -27,6 +27,12 @@ const errorMap = {
           "Description: Adds a slowmode to the messages sent to the anon chat. 0 seconds turns slowmode off",
       },
       {
+        name: "Lockdown",
+        value:
+          "• `!anon lockdown`\n" +
+          "Description: Locks/Unlocks the regular anon-chat, depending on current status",
+      },
+      {
         name: "Bans and warns",
         value:
           "• `!anon tempban msg_id days reason`\n" +
@@ -124,6 +130,8 @@ const errorMap = {
   1009: "Warn tempban duration set to ",
   1010: "Days before a user can post in anon is set to ",
   1011: "Provided user can now post in the main anon chat, regardless of alt restrictions",
+  1012: "Regular anon chat has been locked down",
+  1013: "Regular anon chat has been unlocked",
   // Input configuration problems
   2000: "Command unrecognized. Run !anon help for all available commands",
   2001: "Nothing provided after set, or the channel target was incorrect. Run !anon help for all available options",
@@ -161,11 +169,13 @@ const errorMap = {
   2022: "Improper input for daysBeforePosting. Use: !anon daysBeforePosting [day count between 0-90 inclusive]",
   2023: "Improver input for bypassAltRestriction. Use: !anon bypassAltRestriction [userId]",
   2024: "Provided userid was not found as being locked by the alt protection. Did you pass the right ID? Are they actually locked?",
+  2025: "Improper input for lockdown. Usage: !anon lockdown",
   // Message blocks
   3000: "Slowmode is active. Try sending in ",
   3001: "You've sent too many messages within a short timeframe. Try again in ",
   3002: "You've been temporarily banned from posting anonymous messages.\nReason: ",
   3003: "You've been permenantly banned from posting anonymous messages.\nReason: ",
+  3004: "The regular anon chat has been locked down until further notice. deep-talks is still available",
   // Warn and ban notifications
   4000: "You have been temporarily banned.\nReason: ",
   4001: "You have been permanently banned.\nReason: ",

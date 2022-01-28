@@ -87,6 +87,12 @@ async function submitAnon(msg) {
       return;
   }
 
+  // Is the main channel locked down?
+  if (params[0] === "!send" && isLockedDown()) {
+    replyTorMessageWithStatus(msg, 3004);
+    return;
+  }
+
   // Can the user even post in normal chat?
   if (params[0] !== "!send-deep" && isInPurgatory(anonId)) {
     replyTorMessageWithStatus(msg, 5000);
@@ -207,6 +213,10 @@ async function submitAnon(msg) {
 
 function isInPurgatory(anonId) {
   return !timerhandler.rescueFromPurgatory(anonId);
+}
+
+function isLockedDown() {
+  return database.getLockdownStatus() === 1;
 }
 
 function isValidReplyNumber(param) {
@@ -446,6 +456,9 @@ async function parseArguments(msg) {
         break;
       case "bypassAltRestriction":
         handleBypassAltRestriction(params, msg);
+        break;
+      case "lockdown":
+        handleLockdown(params, msg);
         break;
       default:
         replyTorMessageWithStatus(msg, 2000);
@@ -843,7 +856,7 @@ function handleSetWarnTempbanDuration(params, msg) {
 function handleSetDaysBeforePosting(params, msg) {
   if (params.length !== 3
     || !isNumeric(params[2])
-    || !(parseInt(params[2] >= 0) && parseInt(params[2]) <= 90)) {
+    || !(parseInt(params[2]) >= 0 && parseInt(params[2]) <= 90)) {
     replyTorMessageWithStatus(msg, 2022);
     return;
   }
@@ -863,6 +876,20 @@ function handleBypassAltRestriction(params, msg) {
   }
   else {
     replyTorMessageWithStatus(msg, 2024);
+  }
+}
+
+function handleLockdown(params, msg) {
+  if (params.length !== 2) {
+    replyTorMessageWithStatus(msg, 2025);
+    return;
+  }
+  const lockdownStatus = database.swapAndReturnLockdownStatus();
+  if (lockdownStatus === 0) {
+    replyTorMessageWithStatus(msg, 1013);
+  }
+  else {
+    replyTorMessageWithStatus(msg, 1012);
   }
 }
 
