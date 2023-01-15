@@ -2,7 +2,7 @@ const discord = require("discord.js");
 
 const errorMap = {
   // Help message for server
-  0: new discord.MessageEmbed()
+  0: new discord.EmbedBuilder()
     .setDescription(
       "WV's custom anon bot designed to allow for maximum admin aboose"
     )
@@ -74,7 +74,7 @@ const errorMap = {
     )
     .setTimestamp(),
   // Help message for user
-  1: new discord.MessageEmbed()
+  1: new discord.EmbedBuilder()
     .setTitle("User Commands")
     .setColor(3447003)
     .addFields({
@@ -100,7 +100,7 @@ const errorMap = {
     })
     .setTimestamp(),
   // Rules for user
-  2: new discord.MessageEmbed()
+  2: new discord.EmbedBuilder()
     .setDescription("WVAnon")
     .setColor(3447003)
     .addFields({
@@ -189,7 +189,8 @@ const errorMap = {
 module.exports = {
   getError: function (err, suffix) {
     // Combining into one will break the help message. Seperate it
-    if (suffix) {
+    if (suffix != null)
+    {
       return errorMap[err] + suffix;
     }
     return errorMap[err];

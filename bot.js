@@ -1,7 +1,16 @@
 const discord = require("discord.js");
 const moment = require("moment");
-const intents = ["GUILD_MEMBERS", "GUILD_MESSAGES", "DIRECT_MESSAGES", "GUILDS"];
-const client = new discord.Client({intents: intents, ws:{intents: intents}});
+const { EmbedBuilder, ChannelType, GatewayIntentBits, Client, Partials } = require("discord.js");
+const client = new Client({
+    intents: [
+      GatewayIntentBits.DirectMessages,
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildBans,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+    ],
+    partials: [Partials.Channel],
+});
 const auth = require("./auth.json");
 const encryptor = require("./encryptor.js");
 const errors = require("./errors.js");
@@ -20,15 +29,15 @@ client.on('guildMemberAdd', member => {
   timerhandler.addPurgatoryUser(anonId);
 });
 
-client.on("message", (msg) => {
+client.on("messageCreate", (msg) => {
   if (msg.author.bot) {
     return;
   }
-  if (msg.channel.type === "dm") {
+  if (msg.channel.type === ChannelType.DM) {
     // if has_accepted
     submitAnon(msg);
   } else if (
-    msg.channel.type === "text" &&
+    msg.channel.type === ChannelType.GuildText &&
     canConfigure(msg, metadata.permissions.CONFIGURE)
   ) {
     parseArguments(msg);
@@ -177,13 +186,13 @@ async function submitAnon(msg) {
   const msgId = database.addMessageAndGetNumber(messageToStore.trim());
   database.insertMsgMap(anonId, msgId);
 
-  const msgEmbed = new discord.MessageEmbed()
+  const msgEmbed = new EmbedBuilder()
     .setDescription(messageToSend.trim())
     .setColor(3447003)
-    .setFooter("#" + msgId.toString());
+    .setFooter({ text: "#" + msgId.toString()});
 
   const destinationChannelObj = client.channels.cache.get(destinationChannel);
-  const sent = await destinationChannelObj.send(msgEmbed);
+  const sent = await destinationChannelObj.send({ embeds: [msgEmbed]});
   const messageUrl =
     "https://discord.com/channels/" +
     sent.guild.id +
@@ -208,7 +217,7 @@ async function submitAnon(msg) {
     name: "Target channel",
     value: destinationChannelObj.name,
   });
-  client.channels.cache.get(anonLogsChannel).send(msgEmbed);
+  client.channels.cache.get(anonLogsChannel).send({ embeds: [msgEmbed]});
 }
 
 function isInPurgatory(anonId) {
@@ -392,7 +401,7 @@ function formatReply(replyNum, msgArray, isNsfw) {
 }
 
 function createMsgEmbed(title, content) {
-  const msg = new discord.MessageEmbed()
+  const msg = new EmbedBuilder()
     .setColor(3447003)
     .addFields({
       name: title,
@@ -904,18 +913,22 @@ function concatRegex(regex1, regex2) {
 }
 
 function replyTorMessageWithStatus(msg, status, suffix, content) {
-  const errorDesc = errors.getError(status);
+  var errorDesc = suffix != null ? errors.getError(status, suffix) : errors.getError(status);
   // Help message special case. Setting header
   if (status === 0) {
-    errorDesc.setAuthor(client.user.username, client.user.avatarURL());
+    errorDesc.setAuthor({ name : client.user.username, iconURL: client.user.avatarURL() });
   }
-
-  if (msg.channel && msg.channel.type === "dm") {
-    msg.reply(errors.getError(status, suffix));
-  } else if (content) {
+  if (content)
+  {
     msg.channel.messages.channel.send(content);
-  } else {
-    msg.channel.messages.channel.send(errors.getError(status, suffix));
+  }
+  else if (status != 0 && status != 1 && status != 2 )
+  {
+    msg.channel.messages.channel.send(errorDesc);
+  }
+  else
+  {
+    msg.channel.messages.channel.send({embeds: [errorDesc]});
   }
 }
 
